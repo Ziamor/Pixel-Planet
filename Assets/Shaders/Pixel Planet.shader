@@ -7,17 +7,20 @@ Shader "Unlit/Pixel Planet"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+
 		_Offset ("Offset", Vector) = (0,0,0,0)
 		_Radius ("Radius", Float) = 1
+
+		_ShadowColor ("Shadow Color", Color) = (1,1,1,1)
 
 		_AtmosphereColor ("Atmosphere Color", Color) = (0,0,1,1)
 		_AtmosphereFalloff ("Atmosphere Falloff", Float) = 1
 		_AtmosphereStrength ("Atmosphere Strength", Range(0,1)) = 1
-		_Texel ("Texel Size", Range(0,0.1)) = 1
+		_AtmosphereLevels ("Atmosphere Levels", Int) = 1
     }
     SubShader
     {
-        Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True"}
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" "IgnoreProjector"="True" "LightMode" = "ForwardBase"}
         LOD 100
 		Blend SrcAlpha OneMinusSrcAlpha
         Pass
@@ -45,15 +48,16 @@ Shader "Unlit/Pixel Planet"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-			float4 _MainTex_TexelSize;
-			float2 _Offset;
-			
+
+			float2 _Offset;			
 			float _Radius;
+
+			fixed4 _ShadowColor;
 
 			fixed4 _AtmosphereColor;
 			float _AtmosphereFalloff;
 			float _AtmosphereStrength;
-			float _Texel;
+			int _AtmosphereLevels;
 
 			static const float PI = 3.14159265359;
 
@@ -84,12 +88,10 @@ Shader "Unlit/Pixel Planet"
             fixed4 frag (v2f i) : SV_Target
             {	
 				// Normalize to range from [0,1] to [-1,1]
-				float2 test = float2(_Texel,_Texel);
-				int2 test2 = i.uv / test;
 				float2 n = (i.uv - 0.5 ) * 2 - _Offset;
 				// Convert to polar form
 				float a = atan2(n.y , n.x ) / PI;
-				float r = length(n);
+				float r = length(n) / _Radius;
 
 				if(r >= 0 && r <= 1) {
 					// Get the new radius in polar form
@@ -115,10 +117,15 @@ Shader "Unlit/Pixel Planet"
 
 						float3 normal = normalize((origin + dir * discriminant) - center);
 						float ndot = saturate(dot(normal, _WorldSpaceLightPos0.xyz));
-						float atmoStrength = pow(1 - saturate(dot(normal, viewdir)),_AtmosphereFalloff) * _AtmosphereStrength;
+						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff)* _AtmosphereStrength;
+
+						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1));
+
+						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor;
 
 						fixed4 color = lerp(planetColor, atmoColor, atmoStrength);
-						return color * fixed4(ndot,ndot,ndot,1);
+
+						return color * steppedNdotl + shadow;
 					}
 				}				
                 return fixed4(0,0,0,0);
