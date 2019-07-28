@@ -1,11 +1,9 @@
-﻿using System.IO;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 public class PlanetGenerator : MonoBehaviour {
     public NoiseSettings noiseSettings;
     public float waterLevel = 0.25f;
-    public Color water, land;
     public float dx = 10, dy = 10, scale = 10;
     public int octaves = 5;
     public float baseRoughness = 1;
@@ -14,7 +12,7 @@ public class PlanetGenerator : MonoBehaviour {
     public bool useColor = true;
     public int size = 512;
 
-    public Gradient landGradient;
+    public Gradient landGradient, waterGradient;
     // Start is called before the first frame update
     void Start() {
     }
@@ -60,8 +58,10 @@ public class PlanetGenerator : MonoBehaviour {
                     if (noiseValue > waterLevel) {
                         float normalisedValue = Mathf.InverseLerp(1 - waterLevel, 1, noiseValue);
                         colors[x + y * width] = landGradient.Evaluate(normalisedValue);
-                    } else
-                        colors[x + y * width] = water;
+                    } else {
+                        float normalisedValue = Mathf.InverseLerp(0, waterLevel, noiseValue);
+                        colors[x + y * width] = waterGradient.Evaluate(normalisedValue);
+                    }
                 } else {
                     colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
                 }
