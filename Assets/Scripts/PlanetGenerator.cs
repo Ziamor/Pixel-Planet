@@ -26,7 +26,7 @@ public class PlanetGenerator : MonoBehaviour {
         MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
         Material mat = meshRenderer.sharedMaterial;
 
-        int width = size * 2;
+        int width = size;
         int height = size;
 
         Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
