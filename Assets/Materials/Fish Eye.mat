@@ -57,6 +57,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Aperture: 1
+    - _AtmosphereFalloff: 3.61
+    - _AtmosphereStrength: 0.931
     - _BarrelPower: 0.01
     - _BumpScale: 1
     - _Cutoff: 0.5
@@ -70,12 +72,17 @@ Material:
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _PlanetSize: 1.2
+    - _Radius: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _Texel: 0.0426
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
+    - _AtmosphereColor: {r: 0.20024922, g: 0.5772682, b: 0.9433962, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Dir: {r: 0, g: 0, b: 0.97, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Offset: {r: -3.52873, g: -0.029174909, b: 0, a: 0}
+    - _Light: {r: 3.11, g: 0.72, b: 0, a: 0}
+    - _Offset: {r: 1.6765118, g: -2.2154498, b: 0, a: 0}
