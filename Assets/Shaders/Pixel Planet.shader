@@ -1,4 +1,4 @@
-﻿Shader "Unlit/Fish Eye Pixel Planet"
+﻿Shader "Unlit/Pixel Planet"
 {
     Properties
     {
