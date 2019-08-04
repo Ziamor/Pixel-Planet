@@ -6,7 +6,7 @@ Shader "Unlit/Pixel Planet"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
+        _PlanetTexture ("Texture", 2D) = "white" {}
 
 		_Offset ("Offset", Vector) = (0,0,0,0)
 		_Radius ("Radius", Float) = 1
@@ -46,8 +46,8 @@ Shader "Unlit/Pixel Planet"
                 float4 vertex : SV_POSITION;
             };
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+            sampler2D _PlanetTexture;
+            float4 _PlanetTexture_ST;
 
 			float2 _Offset;			
 			float _Radius;
@@ -65,7 +65,7 @@ Shader "Unlit/Pixel Planet"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv + float2(_Offset.x / 2, _Offset.y / 2), _MainTex); 
+                o.uv = TRANSFORM_TEX(v.uv + float2(_Offset.x / 2, _Offset.y / 2), _PlanetTexture); 
 				o.worldvertpos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
@@ -104,8 +104,8 @@ Shader "Unlit/Pixel Planet"
 						// Normalize  back to range of [0,1] from [-1,1] 
 						float2 uv = float2(nx, ny) / 2 + 0.5;
 
-						fixed4 planetColor = tex2D(_MainTex, uv - _Offset);
-						planetColor.a = 1;
+						fixed4 planetColor = tex2D(_PlanetTexture, uv - _Offset);
+						//planetColor.a = 1;
 
 						float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
 						float3 center = float3(0,0,0);
@@ -117,13 +117,13 @@ Shader "Unlit/Pixel Planet"
 
 						float3 normal = normalize((origin + dir * discriminant) - center);
 						float ndot = saturate(dot(normal, _WorldSpaceLightPos0.xyz));
-						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff)* _AtmosphereStrength;
+						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
 
 						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1));
 
 						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor;
 
-						fixed4 color = lerp(planetColor, atmoColor, atmoStrength);
+						fixed4 color = planetColor;//lerp(planetColor, atmoColor, atmoStrength);
 
 						return color * steppedNdotl + shadow;
 					}

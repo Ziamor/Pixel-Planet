@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class PlanetGenerator : MonoBehaviour {
     public NoiseSettings noiseSettings;
+    public float baseRadius = 0.5f;
+    public float radiusChange = 0.001f;
     public float waterLevel = 0.25f;
     public float dx = 10, dy = 10, scale = 10;
     public int octaves = 5;
@@ -15,10 +17,36 @@ public class PlanetGenerator : MonoBehaviour {
     public int waterTones = 5;
     public bool reducedTones = true;
     public float toneFalloff = 2;
+    public int layers = 4;
 
     public Gradient landGradient, waterGradient;
+
+    public GameObject planetLayerPrefab;
+
+    public GameObject cloudPrefab;
+    public int cloudCount = 10;
+
+    GameObject[] clouds;
     // Start is called before the first frame update
     void Start() {
+        if (clouds != null) {
+            for (int i = 0; i < clouds.Length; i++) {
+                if (clouds[i] == null) continue;
+                if (Application.isPlaying)
+                    Destroy(clouds[i]);
+                else {
+                    DestroyImmediate(clouds[i]);
+                }
+            }
+        }
+
+        clouds = new GameObject[cloudCount];
+        if (cloudPrefab != null) {
+            for (int i = 0; i < clouds.Length; i++) {
+                clouds[i] = Instantiate(cloudPrefab);
+                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
+            }
+        }
     }
 
     // Update is called once per frame
@@ -27,16 +55,23 @@ public class PlanetGenerator : MonoBehaviour {
     }
 
     public void GeneratePlanet() {
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
-        Material mat = meshRenderer.sharedMaterial;
 
+        Planet[] oldLayers = GetComponentsInChildren<Planet>();
+        for (int i = 0; i < oldLayers.Length; i++) {
+            if (oldLayers[i] == null || oldLayers[i].gameObject == null) continue;
+            if (Application.isPlaying)
+                Destroy(oldLayers[i].gameObject);
+            else {
+                DestroyImmediate(oldLayers[i].gameObject);
+            }
+        }
         int width = size;
         int height = size;
 
-        Texture2D tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Point;
-
-        Color[] colors = new Color[width * height];
+        Color[][] colors = new Color[layers + 1][];
+        for (int i = 0; i < colors.Length; i++) {
+            colors[i] = new Color[width * height];
+        }
         float[,] noiseValues = new float[width, height];
 
         float maxValue = float.MinValue;
@@ -63,29 +98,55 @@ public class PlanetGenerator : MonoBehaviour {
                         float normalisedValue = Mathf.InverseLerp(1 - waterLevel, 1, noiseValue);
                         if (reducedTones)
                             normalisedValue = Mathf.Round(normalisedValue * landTones) / landTones;
-                        colors[x + y * width] = landGradient.Evaluate(normalisedValue);
+                        int index = (int)Mathf.Round(normalisedValue * (layers - 1));
+                        Color color = landGradient.Evaluate(normalisedValue);
+                        for (int i = 0; i < 1 + index; i++) {
+                            colors[i + 1][x + y * width] = color;
+                        }
+                        
                     } else {
                         float normalisedValue = Mathf.InverseLerp(0, waterLevel, noiseValue);
                         if (reducedTones)
                             normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, toneFalloff)) * waterTones) / waterTones;
-                        colors[x + y * width] = waterGradient.Evaluate(normalisedValue);
+                        colors[0][x + y * width] = waterGradient.Evaluate(normalisedValue);
                     }
                 } else {
-                    colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
+                    //colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
                 }
             }
         }
 
-        tex.SetPixels(colors);
-        tex.Apply();
-        /*byte[] bytes = tex.EncodeToPNG();
-        File.WriteAllBytes(Application.dataPath + "/../SavedScreen.png", bytes);*/
-        mat.mainTexture = tex;
+        GameObject oceanLayer = Instantiate(planetLayerPrefab, transform);
+        Texture2D oceanTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        oceanTexture.filterMode = FilterMode.Point;
+
+        oceanTexture.SetPixels(colors[0]);
+        oceanTexture.Apply();
+        oceanLayer.GetComponent<Planet>().SetTexture(oceanTexture);
+        oceanLayer.GetComponent<Planet>().radius = baseRadius;
+
+        for (int i = 0; i < layers; i++) {
+            GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
+            Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            planetLayerTexture.filterMode = FilterMode.Point;
+
+            planetLayerTexture.SetPixels(colors[i + 1]);
+            planetLayerTexture.Apply();
+            planetLayer.GetComponent<Planet>().SetTexture(planetLayerTexture);
+            planetLayer.GetComponent<Planet>().radius = baseRadius + radiusChange * i;
+            planetLayer.transform.localPosition = new Vector3(0, 0.01f * (i + 1f), 0);
+        }
     }
 
-    private void OnValidate() {
-        GeneratePlanet();
-    }
+    /*private void OnValidate() {
+        if (Application.isPlaying)
+            GeneratePlanet();
+        else {
+            UnityEditor.EditorApplication.delayCall += () => {
+                GeneratePlanet();
+            };
+        }
+    }*/
 
     public float Evaluate(Vector3 point) {
         float noiseValue = 0;

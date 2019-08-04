@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 
+[ExecuteInEditMode]
 public class Planet : MonoBehaviour {
     public float rotateSpeed = 1;
-    public GameObject cloudPrefab;
-    public int cloudCount = 10;
+    public float radius = 1;
 
     Material mat;
+    MaterialPropertyBlock propBlock;
+    MeshRenderer meshRenderer;
 
     Vector2 rot;
-
     Vector2 lastPos;
 
-    GameObject[] clouds;
+    Texture texture = null;
 
     // Start is called before the first frame update
     void Start() {
@@ -24,6 +25,9 @@ public class Planet : MonoBehaviour {
         if (mat == null)
             Init();
 
+        if (texture == null) return;
+
+        meshRenderer.GetPropertyBlock(propBlock);
         Vector2 currentPosition = Input.mousePosition;
         if (Input.GetMouseButton(0)) {
             Vector2 dir = (currentPosition - lastPos).normalized;
@@ -31,25 +35,21 @@ public class Planet : MonoBehaviour {
             mat.SetVector("_Offset", rot);
         }
         lastPos = currentPosition;
+        propBlock.SetTexture("_PlanetTexture", texture);
+        propBlock.SetFloat("_Radius", radius);
+        meshRenderer.SetPropertyBlock(propBlock);
     }
 
     void Init() {
-        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
+        propBlock = new MaterialPropertyBlock();
+        meshRenderer = GetComponent<MeshRenderer>();
         mat = meshRenderer.sharedMaterial;
+    }
 
-        if (clouds != null) {
-            for (int i = 0; i < clouds.Length; i++) {
-                if (clouds[i] == null) continue;
-                Destroy(clouds[i]);
-            }
-        }
-        
-        clouds = new GameObject[cloudCount];
-        if (cloudPrefab != null) {
-            for (int i = 0; i < clouds.Length; i++) {
-                clouds[i] = Instantiate(cloudPrefab);
-                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
-            }
-        }
+    public void SetTexture(Texture tex) {
+        if (mat == null)
+            Init();
+
+        texture = tex;
     }
 }
