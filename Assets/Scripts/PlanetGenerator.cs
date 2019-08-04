@@ -2,29 +2,12 @@
 using UnityEngine;
 
 public class PlanetGenerator : MonoBehaviour {
-    public NoiseSettings noiseSettings;
-    public float baseRadius = 0.5f;
-    public float radiusChange = 0.001f;
-    public float waterLevel = 0.25f;
-    public float dx = 10, dy = 10, scale = 10;
-    public int octaves = 5;
-    public float baseRoughness = 1;
-    public float roughness = 1.5f;
-    public float persistance = 0.5f;
-    public bool useColor = true;
-    public int size = 512;
-    public int landTones = 5;
-    public int waterTones = 5;
-    public bool reducedTones = true;
-    public float toneFalloff = 2;
-    public int layers = 4;
-
-    public Gradient landGradient, waterGradient;
-
+    public PlanetSettings planetSettings;
     public GameObject planetLayerPrefab;
-
     public GameObject cloudPrefab;
-    public int cloudCount = 10;
+
+    [HideInInspector]
+    public bool planetSettingsFoldout;
 
     GameObject[] clouds;
 
@@ -41,10 +24,10 @@ public class PlanetGenerator : MonoBehaviour {
     public void GeneratePlanet() {
         Clean();
 
-        int width = size;
-        int height = size;
+        int width = planetSettings.size;
+        int height = planetSettings.size;
 
-        Color[][] colors = new Color[layers][];
+        Color[][] colors = new Color[planetSettings.layers][];
         for (int i = 0; i < colors.Length; i++) {
             colors[i] = new Color[width * height];
         }
@@ -69,20 +52,20 @@ public class PlanetGenerator : MonoBehaviour {
             for (int y = 0; y < height; y++) {
                 float noiseValue = Mathf.InverseLerp(minValue, maxValue, noiseValues[x, y]);
 
-                if (useColor) {
+                if (planetSettings.useColor) {
                     Color color;
                     int index = 0;
-                    if (noiseValue > waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(1 - waterLevel, 1, noiseValue);
-                        if (reducedTones)
-                            normalisedValue = Mathf.Round(normalisedValue * landTones) / landTones;
-                        color = landGradient.Evaluate(normalisedValue);
+                    if (noiseValue > planetSettings.waterLevel) {
+                        float normalisedValue = Mathf.InverseLerp(1 - planetSettings.waterLevel, 1, noiseValue);
+                        if (planetSettings.reducedTones)
+                            normalisedValue = Mathf.Round(normalisedValue * planetSettings.landTones) / planetSettings.landTones;
+                        color = planetSettings.landGradient.Evaluate(normalisedValue);
                         index = (int)Mathf.Round(normalisedValue * (colors.GetLength(0) - 1));
                     } else {
-                        float normalisedValue = Mathf.InverseLerp(0, waterLevel, noiseValue);
-                        if (reducedTones)
-                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, toneFalloff)) * waterTones) / waterTones;
-                        color = waterGradient.Evaluate(normalisedValue);
+                        float normalisedValue = Mathf.InverseLerp(0, planetSettings.waterLevel, noiseValue);
+                        if (planetSettings.reducedTones)
+                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, planetSettings.toneFalloff)) * planetSettings.waterTones) / planetSettings.waterTones;
+                        color = planetSettings.waterGradient.Evaluate(normalisedValue);
                     }
 
                     for (int i = 0; i < 1 + index; i++) {
@@ -96,13 +79,14 @@ public class PlanetGenerator : MonoBehaviour {
 
         for (int i = 0; i < colors.GetLength(0); i++) {
             GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
+            planetLayer.name = "Plant Layer " + 1;
             Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             planetLayerTexture.filterMode = FilterMode.Point;
 
             planetLayerTexture.SetPixels(colors[i]);
             planetLayerTexture.Apply();
             planetLayer.GetComponent<Planet>().SetTexture(planetLayerTexture);
-            planetLayer.GetComponent<Planet>().radius = baseRadius + radiusChange * i;
+            planetLayer.GetComponent<Planet>().radius = planetSettings.baseRadius + planetSettings.radiusChange * i;
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
 
@@ -121,7 +105,7 @@ public class PlanetGenerator : MonoBehaviour {
 
     public void Clean() {
         int childs = transform.childCount;
-        for (int i = childs - 1; i > 0; i--) {
+        for (int i = childs - 1; i >= 0; i--) {
             if (Application.isPlaying)
                 Destroy(transform.GetChild(i).gameObject);
             else {
@@ -130,7 +114,7 @@ public class PlanetGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
-        clouds = new GameObject[cloudCount];
+        clouds = new GameObject[planetSettings.cloudCount];
         if (cloudPrefab != null) {
             for (int i = 0; i < clouds.Length; i++) {
                 clouds[i] = Instantiate(cloudPrefab, transform);
@@ -141,14 +125,14 @@ public class PlanetGenerator : MonoBehaviour {
 
     public float Evaluate(Vector3 point) {
         float noiseValue = 0;
-        float frequency = baseRoughness;
+        float frequency = planetSettings.baseRoughness;
         float amplitude = 1;
 
-        for (int i = 0; i < octaves; i++) {
-            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency, frequency, noiseSettings.seed);
+        for (int i = 0; i < planetSettings.octaves; i++) {
+            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency, frequency, planetSettings.seed);
             noiseValue += (v + 1) * 0.5f * amplitude;
-            frequency *= roughness;
-            amplitude *= persistance;
+            frequency *= planetSettings.roughness;
+            amplitude *= planetSettings.persistance;
         }
 
         return noiseValue;
@@ -158,12 +142,42 @@ public class PlanetGenerator : MonoBehaviour {
 public class PlanetEditor : Editor {
     PlanetGenerator planetGenerator;
 
-    public override void OnInspectorGUI() {
-        planetGenerator = (PlanetGenerator)target;
+    Editor planetSettingsEditor;
 
-        base.OnInspectorGUI();
+    public override void OnInspectorGUI() {
+        using (var check = new EditorGUI.ChangeCheckScope()) {
+            base.OnInspectorGUI();
+            if (check.changed) {
+                planetGenerator.GeneratePlanet();
+            }
+        }
+
         if (GUILayout.Button("Generate")) {
             planetGenerator.GeneratePlanet();
         }
+
+        DrawSettingsEditor(planetGenerator.planetSettings, planetGenerator.GeneratePlanet, ref planetGenerator.planetSettingsFoldout, ref planetSettingsEditor);
+    }
+
+    void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated, ref bool foldout, ref Editor editor) {
+        if (settings != null) {
+            foldout = EditorGUILayout.InspectorTitlebar(foldout, settings);
+            using (var check = new EditorGUI.ChangeCheckScope()) {
+                if (foldout) {
+                    CreateCachedEditor(settings, null, ref editor);
+                    editor.OnInspectorGUI();
+
+                    if (check.changed) {
+                        if (onSettingsUpdated != null) {
+                            onSettingsUpdated();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void OnEnable() {
+        planetGenerator = (PlanetGenerator)target;
     }
 }
