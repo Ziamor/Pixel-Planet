@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5cedcae47308b143921de0314f1ea0a, type: 3}
-  m_Name: Default Planet Settings
+  m_Name: Default Celestial Body  Settings
   m_EditorClassIdentifier: 
   baseRadius: 0.5
   radiusChange: 0.005

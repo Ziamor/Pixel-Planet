@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public class CelestialBodyGenerator : MonoBehaviour {
-    public PlanetSettings planetSettings;
+    public CelestialBodySettings celestialBodySettings;
     public GameObject planetLayerPrefab;
     public GameObject cloudPrefab;
 
@@ -24,10 +24,10 @@ public class CelestialBodyGenerator : MonoBehaviour {
     public void GeneratePlanet() {
         Clean();
 
-        int width = planetSettings.size;
-        int height = planetSettings.size;
+        int width = celestialBodySettings.size;
+        int height = celestialBodySettings.size;
 
-        Color[][] colors = new Color[planetSettings.layers][];
+        Color[][] colors = new Color[celestialBodySettings.layers][];
         for (int i = 0; i < colors.Length; i++) {
             colors[i] = new Color[width * height];
         }
@@ -52,20 +52,20 @@ public class CelestialBodyGenerator : MonoBehaviour {
             for (int y = 0; y < height; y++) {
                 float noiseValue = Mathf.InverseLerp(minValue, maxValue, noiseValues[x, y]);
 
-                if (planetSettings.useColor) {
+                if (celestialBodySettings.useColor) {
                     Color color;
                     int index = 0;
-                    if (noiseValue > planetSettings.waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(1 - planetSettings.waterLevel, 1, noiseValue);
-                        if (planetSettings.reducedTones)
-                            normalisedValue = Mathf.Round(normalisedValue * planetSettings.landTones) / planetSettings.landTones;
-                        color = planetSettings.landGradient.Evaluate(normalisedValue);
+                    if (noiseValue > celestialBodySettings.waterLevel) {
+                        float normalisedValue = Mathf.InverseLerp(1 - celestialBodySettings.waterLevel, 1, noiseValue);
+                        if (celestialBodySettings.reducedTones)
+                            normalisedValue = Mathf.Round(normalisedValue * celestialBodySettings.landTones) / celestialBodySettings.landTones;
+                        color = celestialBodySettings.landGradient.Evaluate(normalisedValue);
                         index = (int)Mathf.Round(normalisedValue * (colors.GetLength(0) - 1));
                     } else {
-                        float normalisedValue = Mathf.InverseLerp(0, planetSettings.waterLevel, noiseValue);
-                        if (planetSettings.reducedTones)
-                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, planetSettings.toneFalloff)) * planetSettings.waterTones) / planetSettings.waterTones;
-                        color = planetSettings.waterGradient.Evaluate(normalisedValue);
+                        float normalisedValue = Mathf.InverseLerp(0, celestialBodySettings.waterLevel, noiseValue);
+                        if (celestialBodySettings.reducedTones)
+                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, celestialBodySettings.toneFalloff)) * celestialBodySettings.waterTones) / celestialBodySettings.waterTones;
+                        color = celestialBodySettings.waterGradient.Evaluate(normalisedValue);
                     }
 
                     for (int i = 0; i < 1 + index; i++) {
@@ -86,7 +86,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
             planetLayerTexture.SetPixels(colors[i]);
             planetLayerTexture.Apply();
             planetLayer.GetComponent<CelestialBody>().SetTexture(planetLayerTexture);
-            planetLayer.GetComponent<CelestialBody>().radius = planetSettings.baseRadius + planetSettings.radiusChange * i;
+            planetLayer.GetComponent<CelestialBody>().radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
 
@@ -104,7 +104,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
-        clouds = new GameObject[planetSettings.cloudCount];
+        clouds = new GameObject[celestialBodySettings.cloudCount];
         if (cloudPrefab != null) {
             for (int i = 0; i < clouds.Length; i++) {
                 clouds[i] = Instantiate(cloudPrefab, transform);
@@ -115,14 +115,14 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
     public float Evaluate(Vector3 point) {
         float noiseValue = 0;
-        float frequency = planetSettings.baseRoughness;
+        float frequency = celestialBodySettings.baseRoughness;
         float amplitude = 1;
 
-        for (int i = 0; i < planetSettings.octaves; i++) {
-            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency, frequency, planetSettings.seed);
+        for (int i = 0; i < celestialBodySettings.octaves; i++) {
+            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency, frequency, celestialBodySettings.seed);
             noiseValue += (v + 1) * 0.5f * amplitude;
-            frequency *= planetSettings.roughness;
-            amplitude *= planetSettings.persistance;
+            frequency *= celestialBodySettings.roughness;
+            amplitude *= celestialBodySettings.persistance;
         }
 
         return noiseValue;
@@ -146,7 +146,7 @@ public class PlanetEditor : Editor {
             planetGenerator.GeneratePlanet();
         }
 
-        DrawSettingsEditor(planetGenerator.planetSettings, planetGenerator.GeneratePlanet, ref planetGenerator.planetSettingsFoldout, ref planetSettingsEditor);
+        DrawSettingsEditor(planetGenerator.celestialBodySettings, planetGenerator.GeneratePlanet, ref planetGenerator.planetSettingsFoldout, ref planetSettingsEditor);
     }
 
     void DrawSettingsEditor(Object settings, System.Action onSettingsUpdated, ref bool foldout, ref Editor editor) {
