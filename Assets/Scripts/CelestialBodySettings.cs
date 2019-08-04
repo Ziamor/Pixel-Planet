@@ -1,10 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu()]
-public class PlanetSettings : ScriptableObject
-{
+public class CelestialBodySettings : ScriptableObject {
     public float baseRadius = 0.5f;
     public float radiusChange = 0.001f;
     public float waterLevel = 0.25f;

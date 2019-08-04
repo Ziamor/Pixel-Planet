@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-public class PlanetGenerator : MonoBehaviour {
+public class CelestialBodyGenerator : MonoBehaviour {
     public PlanetSettings planetSettings;
     public GameObject planetLayerPrefab;
     public GameObject cloudPrefab;
@@ -85,23 +85,13 @@ public class PlanetGenerator : MonoBehaviour {
 
             planetLayerTexture.SetPixels(colors[i]);
             planetLayerTexture.Apply();
-            planetLayer.GetComponent<Planet>().SetTexture(planetLayerTexture);
-            planetLayer.GetComponent<Planet>().radius = planetSettings.baseRadius + planetSettings.radiusChange * i;
+            planetLayer.GetComponent<CelestialBody>().SetTexture(planetLayerTexture);
+            planetLayer.GetComponent<CelestialBody>().radius = planetSettings.baseRadius + planetSettings.radiusChange * i;
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
 
         GenerateClouds();
     }
-
-    /*private void OnValidate() {
-        if (Application.isPlaying)
-            GeneratePlanet();
-        else {
-            UnityEditor.EditorApplication.delayCall += () => {
-                GeneratePlanet();
-            };
-        }
-    }*/
 
     public void Clean() {
         int childs = transform.childCount;
@@ -138,9 +128,9 @@ public class PlanetGenerator : MonoBehaviour {
         return noiseValue;
     }
 }
-[CustomEditor(typeof(PlanetGenerator))]
+[CustomEditor(typeof(CelestialBodyGenerator))]
 public class PlanetEditor : Editor {
-    PlanetGenerator planetGenerator;
+    CelestialBodyGenerator planetGenerator;
 
     Editor planetSettingsEditor;
 
@@ -178,6 +168,6 @@ public class PlanetEditor : Editor {
     }
 
     private void OnEnable() {
-        planetGenerator = (PlanetGenerator)target;
+        planetGenerator = (CelestialBodyGenerator)target;
     }
 }

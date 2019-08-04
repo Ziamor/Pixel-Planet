@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [ExecuteInEditMode]
-public class Planet : MonoBehaviour {
+public class CelestialBody : MonoBehaviour {
     public float rotateSpeed = 1;
     public float radius = 1;
 
