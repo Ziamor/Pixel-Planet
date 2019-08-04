@@ -323,7 +323,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 624904816}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3bc480c561c2cd64aa16327c78303dbf, type: 3}
   m_Name: 
@@ -531,6 +531,10 @@ MonoBehaviour:
   persistance: 0.6
   useColor: 1
   size: 128
+  landTones: 15
+  waterTones: 6
+  reducedTones: 1
+  toneFalloff: 1.82
   landGradient:
     serializedVersion: 2
     key0: {r: 0.990566, g: 0.79747784, b: 0.35978103, a: 1}
@@ -565,15 +569,15 @@ MonoBehaviour:
     key0: {r: 0.04472231, g: 0.10921584, b: 0.6320754, a: 1}
     key1: {r: 0, g: 0.2547415, b: 1, a: 1}
     key2: {r: 0, g: 0.39461467, b: 1, a: 0}
-    key3: {r: 0, g: 0.62903637, b: 1, a: 0}
+    key3: {r: 0, g: 0.8927181, b: 1, a: 0}
     key4: {r: 0, g: 0.8927181, b: 1, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
     ctime0: 0
-    ctime1: 31804
-    ctime2: 62258
-    ctime3: 63608
+    ctime1: 32575
+    ctime2: 63800
+    ctime3: 65535
     ctime4: 65535
     ctime5: 0
     ctime6: 0
@@ -587,7 +591,7 @@ MonoBehaviour:
     atime6: 0
     atime7: 0
     m_Mode: 0
-    m_NumColorKeys: 5
+    m_NumColorKeys: 4
     m_NumAlphaKeys: 2
 --- !u!114 &1752757680
 MonoBehaviour:
@@ -602,3 +606,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotateSpeed: 0.05
+  cloudPrefab: {fileID: 3401048284205895778, guid: 82c5b0b5a21fa7d40b16c25bbf2e0083,
+    type: 3}
+  cloudCount: 10

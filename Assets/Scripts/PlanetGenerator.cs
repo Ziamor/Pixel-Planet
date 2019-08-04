@@ -11,6 +11,10 @@ public class PlanetGenerator : MonoBehaviour {
     public float persistance = 0.5f;
     public bool useColor = true;
     public int size = 512;
+    public int landTones = 5;
+    public int waterTones = 5;
+    public bool reducedTones = true;
+    public float toneFalloff = 2;
 
     public Gradient landGradient, waterGradient;
     // Start is called before the first frame update
@@ -57,9 +61,13 @@ public class PlanetGenerator : MonoBehaviour {
                 if (useColor) {
                     if (noiseValue > waterLevel) {
                         float normalisedValue = Mathf.InverseLerp(1 - waterLevel, 1, noiseValue);
+                        if (reducedTones)
+                            normalisedValue = Mathf.Round(normalisedValue * landTones) / landTones;
                         colors[x + y * width] = landGradient.Evaluate(normalisedValue);
                     } else {
                         float normalisedValue = Mathf.InverseLerp(0, waterLevel, noiseValue);
+                        if (reducedTones)
+                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, toneFalloff)) * waterTones) / waterTones;
                         colors[x + y * width] = waterGradient.Evaluate(normalisedValue);
                     }
                 } else {

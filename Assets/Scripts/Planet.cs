@@ -1,29 +1,26 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.EventSystems;
+﻿using UnityEngine;
 
-[ExecuteInEditMode]
-public class Planet : MonoBehaviour
-{
+public class Planet : MonoBehaviour {
     public float rotateSpeed = 1;
+    public GameObject cloudPrefab;
+    public int cloudCount = 10;
 
-    MeshRenderer meshRenderer;
     Material mat;
 
     Vector2 rot;
 
     Vector2 lastPos;
+
+    GameObject[] clouds;
+
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         Init();
         lastPos = Input.mousePosition;
     }
 
     // Update is called once per frame
-    void Update()
-    {
+    void Update() {
         if (mat == null)
             Init();
 
@@ -37,7 +34,22 @@ public class Planet : MonoBehaviour
     }
 
     void Init() {
-        meshRenderer = GetComponent<MeshRenderer>();
+        MeshRenderer meshRenderer = GetComponent<MeshRenderer>();
         mat = meshRenderer.sharedMaterial;
+
+        if (clouds != null) {
+            for (int i = 0; i < clouds.Length; i++) {
+                if (clouds[i] == null) continue;
+                Destroy(clouds[i]);
+            }
+        }
+        
+        clouds = new GameObject[cloudCount];
+        if (cloudPrefab != null) {
+            for (int i = 0; i < clouds.Length; i++) {
+                clouds[i] = Instantiate(cloudPrefab);
+                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
+            }
+        }
     }
 }
