@@ -55,8 +55,8 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 if (celestialBodySettings.useColor) {
                     Color color;
                     int index = 0;
-                    if (noiseValue > celestialBodySettings.waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(1 - celestialBodySettings.waterLevel, 1, noiseValue);
+                    if (noiseValue >= celestialBodySettings.waterLevel) {
+                        float normalisedValue = Mathf.InverseLerp(celestialBodySettings.waterLevel == 0? 0 : 1 - celestialBodySettings.waterLevel, 1, noiseValue);
                         if (celestialBodySettings.reducedTones)
                             normalisedValue = Mathf.Round(normalisedValue * celestialBodySettings.landTones) / celestialBodySettings.landTones;
                         color = celestialBodySettings.landGradient.Evaluate(normalisedValue);

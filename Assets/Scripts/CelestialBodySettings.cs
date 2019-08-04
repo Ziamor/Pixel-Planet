@@ -5,7 +5,7 @@ public class CelestialBodySettings : ScriptableObject {
     public float baseRadius = 0.5f;
     public float radiusChange = 0.001f;
     public float waterLevel = 0.25f;
-    public float dx = 10, dy = 10, scale = 10;
+    public float dx = 10, dy = 10;
     public int octaves = 5;
     public float baseRoughness = 1;
     public float roughness = 1.5f;
