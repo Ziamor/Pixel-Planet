@@ -11,12 +11,15 @@ Shader "Unlit/Pixel Planet"
 		_Offset ("Offset", Vector) = (0,0,0,0)
 		_Radius ("Radius", Float) = 1
 
+		_ShadowStrength ("Shadow Strength", Float) = 1
 		_ShadowColor ("Shadow Color", Color) = (1,1,1,1)
 
 		_AtmosphereColor ("Atmosphere Color", Color) = (0,0,1,1)
 		_AtmosphereFalloff ("Atmosphere Falloff", Float) = 1
 		_AtmosphereStrength ("Atmosphere Strength", Range(0,1)) = 1
 		_AtmosphereLevels ("Atmosphere Levels", Int) = 1
+
+		_LightDir ("Light Direction", Vector) = (0,0,0,0)
     }
     SubShader
     {
@@ -52,6 +55,7 @@ Shader "Unlit/Pixel Planet"
 			float2 _Offset;			
 			float _Radius;
 
+			float _ShadowStrength;
 			fixed4 _ShadowColor;
 
 			fixed4 _AtmosphereColor;
@@ -59,6 +63,7 @@ Shader "Unlit/Pixel Planet"
 			float _AtmosphereStrength;
 			int _AtmosphereLevels;
 
+			float4 _LightDir;
 			static const float PI = 3.14159265359;
 
             v2f vert (appdata v)
@@ -116,12 +121,12 @@ Shader "Unlit/Pixel Planet"
 						fixed4 atmoColor = _AtmosphereColor;
 
 						float3 normal = normalize((origin + dir * discriminant) - center);
-						float ndot = saturate(dot(normal, _WorldSpaceLightPos0.xyz));
+						float ndot = saturate(dot(normal, _LightDir.xyz));
 						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
 
-						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1));
+						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1)) * _ShadowStrength + (1 - _ShadowStrength);
 
-						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a;
+						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a * _ShadowStrength;
 
 						fixed4 color = planetColor;//lerp(planetColor, atmoColor, atmoStrength);
 

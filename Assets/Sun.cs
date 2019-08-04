@@ -24,8 +24,8 @@ public class Sun : MonoBehaviour
         Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, Time.time * speed, 0.0f);
         transform.rotation = Quaternion.LookRotation(newDir);
 
-        transform.RotateAround(target.position, axis, rotateSpeed * Time.deltaTime);
+        /*transform.RotateAround(target.position, axis, rotateSpeed * Time.deltaTime);
         var desiredPosition = (transform.position - target.position).normalized * radius + target.position;
-        transform.position = Vector3.MoveTowards(transform.position, desiredPosition, Time.deltaTime * rotateSpeed);
+        transform.position = Vector3.MoveTowards(transform.position, desiredPosition, Time.deltaTime * rotateSpeed);*/
     }
 }

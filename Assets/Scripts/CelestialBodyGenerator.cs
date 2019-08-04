@@ -56,7 +56,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                     Color color;
                     int index = 0;
                     if (noiseValue >= celestialBodySettings.waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(celestialBodySettings.waterLevel == 0? 0 : 1 - celestialBodySettings.waterLevel, 1, noiseValue);
+                        float normalisedValue = Mathf.InverseLerp(celestialBodySettings.waterLevel == 0 ? 0 : 1 - celestialBodySettings.waterLevel, 1, noiseValue);
                         if (celestialBodySettings.reducedTones)
                             normalisedValue = Mathf.Round(normalisedValue * celestialBodySettings.landTones) / celestialBodySettings.landTones;
                         color = celestialBodySettings.landGradient.Evaluate(normalisedValue);
@@ -85,8 +85,13 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
             planetLayerTexture.SetPixels(colors[i]);
             planetLayerTexture.Apply();
-            planetLayer.GetComponent<CelestialBody>().SetTexture(planetLayerTexture);
-            planetLayer.GetComponent<CelestialBody>().radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
+
+            CelestialBody celestialBodyLayer = planetLayer.GetComponent<CelestialBody>();
+            celestialBodyLayer.SetTexture(planetLayerTexture);
+            celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
+            celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
+            celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
+
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
 
