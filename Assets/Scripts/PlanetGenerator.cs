@@ -27,26 +27,10 @@ public class PlanetGenerator : MonoBehaviour {
     public int cloudCount = 10;
 
     GameObject[] clouds;
-    // Start is called before the first frame update
-    void Start() {
-        if (clouds != null) {
-            for (int i = 0; i < clouds.Length; i++) {
-                if (clouds[i] == null) continue;
-                if (Application.isPlaying)
-                    Destroy(clouds[i]);
-                else {
-                    DestroyImmediate(clouds[i]);
-                }
-            }
-        }
 
-        clouds = new GameObject[cloudCount];
-        if (cloudPrefab != null) {
-            for (int i = 0; i < clouds.Length; i++) {
-                clouds[i] = Instantiate(cloudPrefab);
-                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
-            }
-        }
+    void Start() {
+        if (Application.isPlaying)
+            GeneratePlanet();
     }
 
     // Update is called once per frame
@@ -55,20 +39,12 @@ public class PlanetGenerator : MonoBehaviour {
     }
 
     public void GeneratePlanet() {
+        Clean();
 
-        Planet[] oldLayers = GetComponentsInChildren<Planet>();
-        for (int i = 0; i < oldLayers.Length; i++) {
-            if (oldLayers[i] == null || oldLayers[i].gameObject == null) continue;
-            if (Application.isPlaying)
-                Destroy(oldLayers[i].gameObject);
-            else {
-                DestroyImmediate(oldLayers[i].gameObject);
-            }
-        }
         int width = size;
         int height = size;
 
-        Color[][] colors = new Color[layers + 1][];
+        Color[][] colors = new Color[layers][];
         for (int i = 0; i < colors.Length; i++) {
             colors[i] = new Color[width * height];
         }
@@ -94,21 +70,23 @@ public class PlanetGenerator : MonoBehaviour {
                 float noiseValue = Mathf.InverseLerp(minValue, maxValue, noiseValues[x, y]);
 
                 if (useColor) {
+                    Color color;
+                    int index = 0;
                     if (noiseValue > waterLevel) {
                         float normalisedValue = Mathf.InverseLerp(1 - waterLevel, 1, noiseValue);
                         if (reducedTones)
                             normalisedValue = Mathf.Round(normalisedValue * landTones) / landTones;
-                        int index = (int)Mathf.Round(normalisedValue * (layers - 1));
-                        Color color = landGradient.Evaluate(normalisedValue);
-                        for (int i = 0; i < 1 + index; i++) {
-                            colors[i + 1][x + y * width] = color;
-                        }
-                        
+                        color = landGradient.Evaluate(normalisedValue);
+                        index = (int)Mathf.Round(normalisedValue * (colors.GetLength(0) - 1));
                     } else {
                         float normalisedValue = Mathf.InverseLerp(0, waterLevel, noiseValue);
                         if (reducedTones)
                             normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, toneFalloff)) * waterTones) / waterTones;
-                        colors[0][x + y * width] = waterGradient.Evaluate(normalisedValue);
+                        color = waterGradient.Evaluate(normalisedValue);
+                    }
+
+                    for (int i = 0; i < 1 + index; i++) {
+                        colors[i][x + y * width] = color;
                     }
                 } else {
                     //colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
@@ -116,26 +94,19 @@ public class PlanetGenerator : MonoBehaviour {
             }
         }
 
-        GameObject oceanLayer = Instantiate(planetLayerPrefab, transform);
-        Texture2D oceanTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        oceanTexture.filterMode = FilterMode.Point;
-
-        oceanTexture.SetPixels(colors[0]);
-        oceanTexture.Apply();
-        oceanLayer.GetComponent<Planet>().SetTexture(oceanTexture);
-        oceanLayer.GetComponent<Planet>().radius = baseRadius;
-
-        for (int i = 0; i < layers; i++) {
+        for (int i = 0; i < colors.GetLength(0); i++) {
             GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
             Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             planetLayerTexture.filterMode = FilterMode.Point;
 
-            planetLayerTexture.SetPixels(colors[i + 1]);
+            planetLayerTexture.SetPixels(colors[i]);
             planetLayerTexture.Apply();
             planetLayer.GetComponent<Planet>().SetTexture(planetLayerTexture);
             planetLayer.GetComponent<Planet>().radius = baseRadius + radiusChange * i;
-            planetLayer.transform.localPosition = new Vector3(0, 0.01f * (i + 1f), 0);
+            planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
+
+        GenerateClouds();
     }
 
     /*private void OnValidate() {
@@ -147,6 +118,26 @@ public class PlanetGenerator : MonoBehaviour {
             };
         }
     }*/
+
+    public void Clean() {
+        int childs = transform.childCount;
+        for (int i = childs - 1; i > 0; i--) {
+            if (Application.isPlaying)
+                Destroy(transform.GetChild(i).gameObject);
+            else {
+                DestroyImmediate(transform.GetChild(i).gameObject);
+            }
+        }
+    }
+    public void GenerateClouds() {
+        clouds = new GameObject[cloudCount];
+        if (cloudPrefab != null) {
+            for (int i = 0; i < clouds.Length; i++) {
+                clouds[i] = Instantiate(cloudPrefab, transform);
+                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
+            }
+        }
+    }
 
     public float Evaluate(Vector3 point) {
         float noiseValue = 0;

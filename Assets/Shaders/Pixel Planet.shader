@@ -121,7 +121,7 @@ Shader "Unlit/Pixel Planet"
 
 						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1));
 
-						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor;
+						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a;
 
 						fixed4 color = planetColor;//lerp(planetColor, atmoColor, atmoStrength);
 

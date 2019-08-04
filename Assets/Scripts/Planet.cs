@@ -22,10 +22,10 @@ public class Planet : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (mat == null)
+        if (mat == null || propBlock == null)
             Init();
 
-        if (texture == null) return;
+        if (texture == null) return; 
 
         meshRenderer.GetPropertyBlock(propBlock);
         Vector2 currentPosition = Input.mousePosition;
