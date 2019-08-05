@@ -88,10 +88,10 @@ MonoBehaviour:
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
   cloudTextureSize: 256
-  cloudRadiusStart: 0.56
-  cloudRadiusChange: 0.005
-  cloudCentroids: 15
-  cloundCount: 30
-  cloudDensity: 0.05
+  cloudRadiusStart: 0.58
+  cloudRadiusChange: 0.002
+  cloudCentroids: 20
+  cloundCount: 80
+  cloudDensity: 0.15
   shadowStrength: 1
   allowRotate: 1

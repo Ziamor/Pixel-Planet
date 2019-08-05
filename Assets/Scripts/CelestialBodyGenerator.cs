@@ -90,6 +90,8 @@ public class CelestialBodyGenerator : MonoBehaviour {
             celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
             celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
             celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
+            celestialBodyLayer.scroll = true;
+            celestialBodyLayer.rotateSpeed = 0.001f;
 
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
@@ -117,23 +119,23 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
             for (int i = 0; i < celestialBodySettings.cloundCount; i++) {
                 int index = Random.Range(0, cloudCentroids.Length - 1);
-                clouds[i] = cloudCentroids[index] + Random.insideUnitCircle * celestialBodySettings.cloudDensity;
+                clouds[i] = cloudCentroids[index] + (Random.insideUnitCircle + Vector2.one) / 2 * celestialBodySettings.cloudDensity;
             }
 
             int width = celestialBodySettings.cloudTextureSize;
             int height = celestialBodySettings.cloudTextureSize;
 
-            for (int k = 0; k < cloudTextures.Length; k++) {
+            for (int k = 0; k < cloudTextures.Length * 3; k++) {
                 Texture2D cloudLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
                 cloudLayerTexture.filterMode = FilterMode.Point;
 
-                Color[] cloudColors = cloudTextures[k].GetPixels();
+                Color[] cloudColors = cloudTextures[k / 3].GetPixels();
                 Color[] colors = new Color[width * height];
                 for (int i = 0; i < clouds.Length; i++) {
                     for (int j = 0; j < cloudColors.Length; j++) {
                         if (cloudColors[j].a == 0) continue;
-                        int localX = j % cloudTextures[k].width;
-                        int localY = j / cloudTextures[k].width;
+                        int localX = j % cloudTextures[k / 3].width;
+                        int localY = j / cloudTextures[k / 3].width;
 
                         int x = ((int)((clouds[i].x * width) % width) + localX) % width;
                         int y = ((int)((clouds[i].y * height) % height) + localY) % height;
