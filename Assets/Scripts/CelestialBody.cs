@@ -21,7 +21,7 @@ public class CelestialBody : MonoBehaviour {
     // Start is called before the first frame update
     void Start() {
         Init();
-        lastPos = Input.mousePosition;       
+        lastPos = Input.mousePosition;
     }
 
     // Update is called once per frame
@@ -29,7 +29,7 @@ public class CelestialBody : MonoBehaviour {
         if (mat == null || propBlock == null || sun == null)
             Init();
 
-        if (texture == null) return; 
+        if (texture == null) return;
 
         meshRenderer.GetPropertyBlock(propBlock);
         Vector2 currentPosition = Input.mousePosition;
@@ -42,6 +42,12 @@ public class CelestialBody : MonoBehaviour {
         lastPos = currentPosition;
 
         Vector3 lightDir = (sun.position - transform.position).normalized;
+
+        Vector3 t = Camera.main.transform.eulerAngles;
+        rot.x = t.y;
+        rot.y = t.x;
+        propBlock.SetVector("_Offset", rot);
+
 
         propBlock.SetTexture("_PlanetTexture", texture);
         propBlock.SetFloat("_Radius", radius);

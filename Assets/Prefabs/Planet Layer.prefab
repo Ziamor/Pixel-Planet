@@ -92,3 +92,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotateSpeed: 0.05
+  radius: 1
+  shadowStrength: 1
+  allowRotate: 1

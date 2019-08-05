@@ -17,7 +17,6 @@ MonoBehaviour:
   waterLevel: 0.55
   dx: 50
   dy: 50
-  scale: 8
   octaves: 5
   baseRoughness: 1
   roughness: 2
@@ -88,4 +87,6 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
-  cloudCount: 10
+  cloudCount: 0
+  shadowStrength: 1
+  allowRotate: 1

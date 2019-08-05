@@ -87,6 +87,6 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
-  cloudCount: 10
+  cloudCount: 0
   shadowStrength: 0
   allowRotate: 0
