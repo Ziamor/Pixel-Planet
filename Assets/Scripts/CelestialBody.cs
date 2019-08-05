@@ -6,7 +6,9 @@ public class CelestialBody : MonoBehaviour {
     public float radius = 1;
     public float shadowStrength = 1f;
     public bool allowRotate = true;
+    public bool scroll = false;
 
+    public Color shadowColor = new Color(0.06652723f, 0.06652723f, 0.1226415f);
     Material mat;
     MaterialPropertyBlock propBlock;
     MeshRenderer meshRenderer;
@@ -39,19 +41,19 @@ public class CelestialBody : MonoBehaviour {
             rot += dir * rotateSpeed;
             propBlock.SetVector("_Offset", rot);
         }
+
+        if (scroll) {
+            rot += Vector2.right * rotateSpeed;
+            propBlock.SetVector("_Offset", rot);
+        }
         lastPos = currentPosition;
 
         Vector3 lightDir = (sun.position - transform.position).normalized;
 
-        Vector3 t = Camera.main.transform.eulerAngles;
-        rot.x = t.y;
-        rot.y = t.x;
-        propBlock.SetVector("_Offset", rot);
-
-
         propBlock.SetTexture("_PlanetTexture", texture);
         propBlock.SetFloat("_Radius", radius);
         propBlock.SetFloat("_ShadowStrength", shadowStrength);
+        propBlock.SetColor("_ShadowColor", shadowColor);
         propBlock.SetVector("_LightDir", lightDir);
         meshRenderer.SetPropertyBlock(propBlock);
     }

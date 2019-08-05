@@ -22,7 +22,7 @@ MonoBehaviour:
   roughness: 3
   persistance: 0.7
   useColor: 1
-  size: 64
+  bodyTextureSize: 128
   landTones: 4
   waterTones: 1
   reducedTones: 1
@@ -87,6 +87,11 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
-  cloudCount: 0
+  cloudTextureSize: 128
+  cloudRadiusStart: 0.56
+  cloudRadiusChange: 0.001
+  cloudCentroids: 0
+  cloundCount: 0
+  cloudDensity: 0.05
   shadowStrength: 1
   allowRotate: 0

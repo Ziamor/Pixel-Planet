@@ -11,7 +11,7 @@ public class CelestialBodySettings : ScriptableObject {
     public float roughness = 1.5f;
     public float persistance = 0.5f;
     public bool useColor = true;
-    public int size = 512;
+    public int bodyTextureSize = 128;
     public int landTones = 5;
     public int waterTones = 5;
     public bool reducedTones = true;
@@ -19,8 +19,11 @@ public class CelestialBodySettings : ScriptableObject {
     public int layers = 4;
     public int seed = 1243;
     public Gradient landGradient, waterGradient;
-    public int cloudCount = 0;
-    public int cloudChunks = 0;
+    public int cloudTextureSize = 128;
+    public float cloudRadiusStart = 0.56f;
+    public float cloudRadiusChange = 0.001f;
+    public int cloudCentroids = 0;
+    public int cloundCount = 0;
     public float cloudDensity = 0.05f;
     public float shadowStrength = 1f;
     public bool allowRotate = true;

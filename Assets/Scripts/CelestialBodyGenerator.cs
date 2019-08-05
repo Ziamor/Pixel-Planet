@@ -5,6 +5,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
     public CelestialBodySettings celestialBodySettings;
     public GameObject planetLayerPrefab;
     public GameObject cloudPrefab;
+    public Texture2D[] cloudTextures;
 
     [HideInInspector]
     public bool planetSettingsFoldout;
@@ -22,8 +23,8 @@ public class CelestialBodyGenerator : MonoBehaviour {
     public void GeneratePlanet() {
         Clean();
 
-        int width = celestialBodySettings.size;
-        int height = celestialBodySettings.size;
+        int width = celestialBodySettings.bodyTextureSize;
+        int height = celestialBodySettings.bodyTextureSize;
 
         Color[][] colors = new Color[celestialBodySettings.layers][];
         for (int i = 0; i < colors.Length; i++) {
@@ -107,20 +108,53 @@ public class CelestialBodyGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
-        if (cloudPrefab != null && celestialBodySettings.cloudCount > 0) {
-            Vector2[] clouds = new Vector2[celestialBodySettings.cloudCount];
-            for (int i = 0; i < clouds.Length; i++) {
-                clouds[i] = new Vector2(Random.value, Random.value);
+        if (cloudPrefab != null && celestialBodySettings.cloudCentroids > 0) {
+            Vector2[] cloudCentroids = new Vector2[celestialBodySettings.cloudCentroids];
+            Vector2[] clouds = new Vector2[celestialBodySettings.cloundCount];
+            for (int i = 0; i < cloudCentroids.Length; i++) {
+                cloudCentroids[i] = new Vector2(Random.value, Random.value);
             }
 
-            for (int i = 0; i < celestialBodySettings.cloudChunks; i++) {
-                int index = Random.Range(0, clouds.Length - 1);
-                Cloud cloud = Instantiate(cloudPrefab, transform).GetComponent<Cloud>();
+            for (int i = 0; i < celestialBodySettings.cloundCount; i++) {
+                int index = Random.Range(0, cloudCentroids.Length - 1);
+                clouds[i] = cloudCentroids[index] + Random.insideUnitCircle * celestialBodySettings.cloudDensity;
+            }
+
+            int width = celestialBodySettings.cloudTextureSize;
+            int height = celestialBodySettings.cloudTextureSize;
+
+            for (int k = 0; k < cloudTextures.Length; k++) {
+                Texture2D cloudLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                cloudLayerTexture.filterMode = FilterMode.Point;
+
+                Color[] cloudColors = cloudTextures[k].GetPixels();
+                Color[] colors = new Color[width * height];
+                for (int i = 0; i < clouds.Length; i++) {
+                    for (int j = 0; j < cloudColors.Length; j++) {
+                        if (cloudColors[j].a == 0) continue;
+                        int localX = j % cloudTextures[k].width;
+                        int localY = j / cloudTextures[k].width;
+
+                        int x = ((int)((clouds[i].x * width) % width) + localX) % width;
+                        int y = ((int)((clouds[i].y * height) % height) + localY) % height;
+
+                        int index = x * width + y;
+                        colors[index] = cloudColors[j];
+                    }
+                }
+                cloudLayerTexture.SetPixels(colors);
+                cloudLayerTexture.Apply();
+
+                CelestialBody cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBody>();
+                cloud.SetTexture(cloudLayerTexture);
+                cloud.radius = celestialBodySettings.cloudRadiusStart + celestialBodySettings.cloudRadiusChange * k;
+                cloud.allowRotate = true;
+                cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * celestialBodySettings.layers, 0);
+                cloud.scroll = true;
+                cloud.rotateSpeed = 0.002f;
+                cloud.shadowColor = new Color(0.05288889f, 0.04848149f, 0.119f);
                 //cloud.roateSpeedVariance = Random.Range(0.8f, 1.2f);
-                cloud.Init(clouds[index], celestialBodySettings.cloudDensity);
             }
-
-
         }
     }
 
