@@ -109,9 +109,9 @@ Shader "Unlit/Pixel Clouds"
 						
 						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1));
 
-						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor;
+						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a;
 
-						return planetColor;// * steppedNdotl + shadow;
+						return planetColor * steppedNdotl + shadow;
 					}
 				}				
                 return fixed4(0,0,0,0);

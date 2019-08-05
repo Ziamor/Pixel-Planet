@@ -9,8 +9,6 @@ public class CelestialBodyGenerator : MonoBehaviour {
     [HideInInspector]
     public bool planetSettingsFoldout;
 
-    GameObject[] clouds;
-
     void Start() {
         if (Application.isPlaying)
             GeneratePlanet();
@@ -109,12 +107,20 @@ public class CelestialBodyGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
-        clouds = new GameObject[celestialBodySettings.cloudCount];
-        if (cloudPrefab != null) {
+        if (cloudPrefab != null && celestialBodySettings.cloudCount > 0) {
+            Vector2[] clouds = new Vector2[celestialBodySettings.cloudCount];
             for (int i = 0; i < clouds.Length; i++) {
-                clouds[i] = Instantiate(cloudPrefab, transform);
-                clouds[i].GetComponent<Cloud>().roateSpeedVariance = Random.Range(0.8f, 1.2f);
+                clouds[i] = new Vector2(Random.value, Random.value);
             }
+
+            for (int i = 0; i < celestialBodySettings.cloudChunks; i++) {
+                int index = Random.Range(0, clouds.Length - 1);
+                Cloud cloud = Instantiate(cloudPrefab, transform).GetComponent<Cloud>();
+                //cloud.roateSpeedVariance = Random.Range(0.8f, 1.2f);
+                cloud.Init(clouds[index], celestialBodySettings.cloudDensity);
+            }
+
+
         }
     }
 

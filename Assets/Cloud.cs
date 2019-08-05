@@ -16,16 +16,14 @@ public class Cloud : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Init();
-        pos = Random.insideUnitCircle;
-        lastPos = Input.mousePosition;
+        
     }
 
     // Update is called once per frame
     void Update()
     {
         if (mat == null)
-            Init();
+            return;
         cloudRenderer.GetPropertyBlock(propBlock);
 
         Vector2 currentPosition = Input.mousePosition;
@@ -38,7 +36,9 @@ public class Cloud : MonoBehaviour
         cloudRenderer.SetPropertyBlock(propBlock);
     }
 
-    void Init() {
+    public void Init(Vector2 center, float density) {
+        pos = Random.insideUnitCircle * density + center;
+        lastPos = Input.mousePosition;
         propBlock = new MaterialPropertyBlock();
         cloudRenderer = GetComponent<MeshRenderer>();
         mat = cloudRenderer.sharedMaterial;

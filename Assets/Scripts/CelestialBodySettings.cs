@@ -19,7 +19,9 @@ public class CelestialBodySettings : ScriptableObject {
     public int layers = 4;
     public int seed = 1243;
     public Gradient landGradient, waterGradient;
-    public int cloudCount = 10;
+    public int cloudCount = 0;
+    public int cloudChunks = 0;
+    public float cloudDensity = 0.05f;
     public float shadowStrength = 1f;
     public bool allowRotate = true;
 }

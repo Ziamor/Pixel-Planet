@@ -87,6 +87,8 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 4
     m_NumAlphaKeys: 2
-  cloudCount: 0
+  cloudCount: 15
+  cloudChunks: 30
+  cloudDensity: 0.05
   shadowStrength: 1
   allowRotate: 1
