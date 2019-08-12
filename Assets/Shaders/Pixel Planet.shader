@@ -33,8 +33,6 @@ Shader "Unlit/Pixel Planet"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag alpha
-            // make fog work
-            #pragma multi_compile_fog
 
             #include "UnityCG.cginc"
 
@@ -86,7 +84,6 @@ Shader "Unlit/Pixel Planet"
                 o.vertex = UnityObjectToClipPos(v.vertex);
                 o.uv = TRANSFORM_TEX(v.uv + float2(_Offset.x / 2, _Offset.y / 2), _PlanetTexture); 
 				o.worldvertpos = mul(unity_ObjectToWorld, v.vertex).xyz;
-                UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
 
@@ -156,7 +153,7 @@ Shader "Unlit/Pixel Planet"
 				float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
 
 				float ndotl = saturate(dot(pData.normal, _LightDir.xyz));
-				float atmoStrength = pow(1 - saturate(round(dot(pData.normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
+				//float atmoStrength = pow(1 - saturate(round(dot(pData.normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
 
 				float steppedNdotl = step(0.0001, fixed4(ndotl,ndotl,ndotl,1)) * _ShadowStrength + (1 - _ShadowStrength);
 
