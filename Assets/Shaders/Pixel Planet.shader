@@ -51,6 +51,13 @@ Shader "Unlit/Pixel Planet"
                 float4 vertex : SV_POSITION;
             };
 
+			struct planetData {
+				float2 uv;
+				float3 normal;
+				float4 color;
+				float keep;
+			};
+
             sampler2D _PlanetTexture;
             float4 _PlanetTexture_ST;
 
@@ -97,10 +104,16 @@ Shader "Unlit/Pixel Planet"
 				}
 			}
 
-            fixed4 frag (v2f i) : SV_Target
-            {	
+			planetData transformPlanet(float2 old_uv) {
+				planetData pData;
+
+				pData.uv = old_uv;
+				pData.normal = float3(0,1,0);
+				pData.color = float4(0,0,0,1);
+				pData.keep = 0;
+
 				// Normalize to range from [0,1] to [-1,1]
-				float2 n = (i.uv - 0.5 ) * 2 - _Offset;
+				float2 n = (old_uv - 0.5 ) * 2 - _Offset;
 				// Convert to polar form
 				float a = atan2(n.y , n.x ) / PI;
 				float r = length(n) / _Radius;
@@ -116,11 +129,8 @@ Shader "Unlit/Pixel Planet"
 						// Normalize  back to range of [0,1] from [-1,1] 
 						float2 uv = float2(nx, ny) / 2 + 0.5;
 
-						fixed4 planetColor = tex2D(_PlanetTexture, uv - _Offset) * _Tint;
-						//planetColor.a = 1;
-						fixed4 watermask = tex2D(_WaterMask, uv - _Offset);
+						pData.color = tex2D(_PlanetTexture, uv - _Offset) * _Tint;
 
-						float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
 						float3 center = float3(0,0,0);
 						float3 origin = float3(n.x,n.y, -1);				
 						float3 dir = float3(0,0,1);
@@ -128,20 +138,34 @@ Shader "Unlit/Pixel Planet"
 						float discriminant = circlePointToSpherePoint(center, _Radius, origin, dir);
 						fixed4 atmoColor = _AtmosphereColor;
 
-						float3 normal = normalize((origin + dir * discriminant) - center);
-						float ndotl = saturate(dot(normal, _LightDir.xyz));
-						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
-
-						float steppedNdotl = step(0.0001, fixed4(ndotl,ndotl,ndotl,1)) * _ShadowStrength + (1 - _ShadowStrength);
-
-						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a * _ShadowStrength;
-
-						fixed4 color = planetColor;//lerp(planetColor, atmoColor, atmoStrength);
-
-						return planetColor * steppedNdotl + shadow * (1-watermask) + planetColor * watermask;
+						pData.uv = uv;
+						pData.normal = normalize((origin + dir * discriminant) - center);
+						pData.keep = 1;
 					}
 				}				
-                return fixed4(0,0,0,0);
+                return pData;
+			}
+
+            fixed4 frag (v2f i) : SV_Target
+            {			
+				planetData pData = transformPlanet(i.uv);
+
+				fixed4 planetColor = pData.color * _Tint;
+				fixed4 watermask = tex2D(_WaterMask, pData.uv - _Offset);
+
+				float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
+
+				float ndotl = saturate(dot(pData.normal, _LightDir.xyz));
+				float atmoStrength = pow(1 - saturate(round(dot(pData.normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
+
+				float steppedNdotl = step(0.0001, fixed4(ndotl,ndotl,ndotl,1)) * _ShadowStrength + (1 - _ShadowStrength);
+
+				fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a * _ShadowStrength;
+
+				fixed4 color = planetColor;
+
+				float lightBleedStrength = 0.7;
+				return (planetColor * steppedNdotl + shadow * (1-watermask) + planetColor * watermask * float4(lightBleedStrength,lightBleedStrength,lightBleedStrength,1)) * pData.keep;
             }
             ENDCG
         }
