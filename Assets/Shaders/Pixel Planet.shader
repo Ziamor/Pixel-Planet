@@ -118,6 +118,7 @@ Shader "Unlit/Pixel Planet"
 
 						fixed4 planetColor = tex2D(_PlanetTexture, uv - _Offset) * _Tint;
 						//planetColor.a = 1;
+						fixed4 watermask = tex2D(_WaterMask, uv - _Offset);
 
 						float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
 						float3 center = float3(0,0,0);
@@ -128,16 +129,16 @@ Shader "Unlit/Pixel Planet"
 						fixed4 atmoColor = _AtmosphereColor;
 
 						float3 normal = normalize((origin + dir * discriminant) - center);
-						float ndot = saturate(dot(normal, _LightDir.xyz));
+						float ndotl = saturate(dot(normal, _LightDir.xyz));
 						float atmoStrength = pow(1 - saturate(round(dot(normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
 
-						float steppedNdotl = step(0.0001, fixed4(ndot,ndot,ndot,1)) * _ShadowStrength + (1 - _ShadowStrength);
+						float steppedNdotl = step(0.0001, fixed4(ndotl,ndotl,ndotl,1)) * _ShadowStrength + (1 - _ShadowStrength);
 
 						fixed4 shadow = (1 - steppedNdotl) * _ShadowColor * planetColor.a * _ShadowStrength;
 
 						fixed4 color = planetColor;//lerp(planetColor, atmoColor, atmoStrength);
 
-						return color * steppedNdotl + shadow;
+						return planetColor * steppedNdotl + shadow * (1-watermask) + planetColor * watermask;
 					}
 				}				
                 return fixed4(0,0,0,0);

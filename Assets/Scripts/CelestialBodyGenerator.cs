@@ -27,6 +27,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
         int height = celestialBodySettings.bodyTextureSize;
 
         Color[][] colors = new Color[celestialBodySettings.layers][];
+        Color[] waterMaskColors = new Color[width * height];
         for (int i = 0; i < colors.Length; i++) {
             colors[i] = new Color[width * height];
         }
@@ -65,6 +66,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                         if (celestialBodySettings.reducedTones)
                             normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, celestialBodySettings.toneFalloff)) * celestialBodySettings.waterTones) / celestialBodySettings.waterTones;
                         color = celestialBodySettings.waterGradient.Evaluate(normalisedValue);
+                        waterMaskColors[x + y * width] = Color.white;
                     }
 
                     for (int i = 0; i < 1 + index; i++) {
@@ -76,9 +78,15 @@ public class CelestialBodyGenerator : MonoBehaviour {
             }
         }
 
+        Texture2D waterMaskTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        waterMaskTexture.filterMode = FilterMode.Point;
+
+        waterMaskTexture.SetPixels(waterMaskColors);
+        waterMaskTexture.Apply();
+
         for (int i = 0; i < colors.GetLength(0); i++) {
             GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
-            planetLayer.name = "Plant Layer " + 1;
+            planetLayer.name = "Plant Layer " + i;
             Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             planetLayerTexture.filterMode = FilterMode.Point;
 
@@ -87,6 +95,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
             CelestialBody celestialBodyLayer = planetLayer.GetComponent<CelestialBody>();
             celestialBodyLayer.SetTexture(planetLayerTexture);
+            celestialBodyLayer.SetWaterMask(waterMaskTexture);
             celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
             celestialBodyLayer.tint = celestialBodySettings.tint;
             celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
@@ -112,7 +121,8 @@ public class CelestialBodyGenerator : MonoBehaviour {
     }
     public void GenerateClouds() {
         int cloudPadding = 3;
-        if (cloudPrefab != null && celestialBodySettings.cloudCentroids > 0) {
+        if (cloudPrefab != null && celestialBodySettings.cloudCentroids > 0 && celestialBodySettings.cloundCount > 0) {
+
             Vector2[] cloudCentroids = new Vector2[celestialBodySettings.cloudCentroids];
             Vector2[] clouds = new Vector2[celestialBodySettings.cloundCount];
             for (int i = 0; i < cloudCentroids.Length; i++) {
@@ -126,6 +136,12 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
             int width = celestialBodySettings.cloudTextureSize;
             int height = celestialBodySettings.cloudTextureSize;
+
+            Texture2D waterMaskTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            waterMaskTexture.filterMode = FilterMode.Point;
+
+            waterMaskTexture.SetPixels(new Color[width * height]);
+            waterMaskTexture.Apply();
 
             for (int k = 0; k < cloudTextures.Length * cloudPadding; k++) {
                 Texture2D cloudLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
@@ -150,7 +166,9 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 cloudLayerTexture.Apply();
 
                 CelestialBody cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBody>();
+                cloud.gameObject.name = "Cloud Layer " + k;
                 cloud.SetTexture(cloudLayerTexture);
+                cloud.SetWaterMask(waterMaskTexture);
                 cloud.radius = celestialBodySettings.cloudRadiusStart + celestialBodySettings.cloudRadiusChange * k;
                 cloud.allowRotate = true;
                 cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * celestialBodySettings.layers, 0);

@@ -34,7 +34,7 @@ public class CelestialBody : MonoBehaviour {
         if (mat == null || propBlock == null)
             Init();
 
-        if (texture == null) return;
+        if (texture == null || waterMask == null) return;
 
         meshRenderer.GetPropertyBlock(propBlock);
         Vector2 currentPosition = Input.mousePosition;
@@ -79,5 +79,12 @@ public class CelestialBody : MonoBehaviour {
             Init();
 
         texture = tex;
+    }
+
+    public void SetWaterMask(Texture tex) {
+        if (mat == null)
+            Init();
+
+        waterMask = tex;
     }
 }
