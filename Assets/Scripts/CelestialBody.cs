@@ -23,6 +23,7 @@ public class CelestialBody : MonoBehaviour {
 
     Transform sun;
 
+    float nightGlow;
     // Start is called before the first frame update
     void Start() {
         Init();
@@ -62,6 +63,7 @@ public class CelestialBody : MonoBehaviour {
         propBlock.SetFloat("_Radius", radius);
         propBlock.SetFloat("_ShadowStrength", shadowStrength);
         propBlock.SetColor("_ShadowColor", shadowColor);
+        propBlock.SetFloat("_NightGlow", nightGlow);
         meshRenderer.SetPropertyBlock(propBlock);
     }
 
@@ -86,5 +88,12 @@ public class CelestialBody : MonoBehaviour {
             Init();
 
         waterMask = tex;
+    }
+
+    public void EnableNightGlow() {
+        if (mat == null)
+            Init();
+        nightGlow = 1;
+        //mat.EnableKeyword("NIGHT_GLOW_ON");
     }
 }

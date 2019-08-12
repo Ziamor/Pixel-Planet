@@ -15,8 +15,8 @@ MonoBehaviour:
   baseRadius: 0.5
   radiusChange: 0.004
   waterLevel: 0.55
-  dx: 50
-  dy: 50
+  dx: 1
+  dy: 1
   octaves: 6
   baseRoughness: 1.5
   roughness: 2
@@ -125,3 +125,4 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   shadowStrength: 1
   allowRotate: 1
+  hasNightGlow: 1

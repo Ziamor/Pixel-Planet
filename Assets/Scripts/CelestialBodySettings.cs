@@ -29,4 +29,5 @@ public class CelestialBodySettings : ScriptableObject {
     public Gradient cloudTint;
     public float shadowStrength = 1f;
     public bool allowRotate = true;
+    public bool hasNightGlow = false;
 }

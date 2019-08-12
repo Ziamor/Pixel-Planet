@@ -22,6 +22,8 @@ Shader "Unlit/Pixel Planet"
 		_AtmosphereLevels ("Atmosphere Levels", Int) = 1
 
 		_LightDir ("Light Direction", Vector) = (0,0,0,0)
+
+		[KeywordEnum(Off, On)] _NIGHT_GLOW_ON ("Night Glow", Float) = 0
     }
     SubShader
     {
@@ -33,6 +35,7 @@ Shader "Unlit/Pixel Planet"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag alpha
+			#pragma multi_compile NIGHT_GLOW_OFF NIGHT_GLOW_ON
 
             #include "UnityCG.cginc"
 
@@ -74,6 +77,8 @@ Shader "Unlit/Pixel Planet"
 			float _AtmosphereFalloff;
 			float _AtmosphereStrength;
 			int _AtmosphereLevels;
+
+			float _NightGlow;
 
 			float4 _LightDir;
 			static const float PI = 3.14159265359;
@@ -162,7 +167,9 @@ Shader "Unlit/Pixel Planet"
 				fixed4 color = planetColor;
 
 				float lightBleedStrength = 0.7;
-				return (planetColor * steppedNdotl + shadow * (1-watermask) + planetColor * watermask * float4(lightBleedStrength,lightBleedStrength,lightBleedStrength,1)) * pData.keep;
+				shadow = (shadow *(1-watermask) + planetColor * watermask * float4(lightBleedStrength,lightBleedStrength,lightBleedStrength,1)) * _NightGlow + shadow * (1 -_NightGlow);
+
+				return (planetColor * steppedNdotl + shadow) * pData.keep;
             }
             ENDCG
         }

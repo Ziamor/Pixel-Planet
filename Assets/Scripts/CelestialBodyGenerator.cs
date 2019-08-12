@@ -103,6 +103,8 @@ public class CelestialBodyGenerator : MonoBehaviour {
             celestialBodyLayer.scroll = true;
             celestialBodyLayer.rotateSpeed = 0.001f;
 
+            if (celestialBodySettings.hasNightGlow)
+                celestialBodyLayer.EnableNightGlow();
             planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
         }
 
@@ -187,7 +189,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
         float amplitude = 1;
 
         for (int i = 0; i < celestialBodySettings.octaves; i++) {
-            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency, frequency, celestialBodySettings.seed);
+            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency * celestialBodySettings.dx, frequency * celestialBodySettings.dy, celestialBodySettings.seed);
             noiseValue += (v + 1) * 0.5f * amplitude;
             frequency *= celestialBodySettings.roughness;
             amplitude *= celestialBodySettings.persistance;
