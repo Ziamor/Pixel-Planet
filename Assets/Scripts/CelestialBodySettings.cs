@@ -18,6 +18,7 @@ public class CelestialBodySettings : ScriptableObject {
     public float toneFalloff = 2;
     public int layers = 4;
     public int seed = 1243;
+    public Color tint = Color.white;
     public Gradient landGradient, waterGradient;
     public int cloudTextureSize = 128;
     public float cloudRadiusStart = 0.56f;
@@ -25,6 +26,7 @@ public class CelestialBodySettings : ScriptableObject {
     public int cloudCentroids = 0;
     public int cloundCount = 0;
     public float cloudDensity = 0.05f;
+    public Gradient cloudTint;
     public float shadowStrength = 1f;
     public bool allowRotate = true;
 }

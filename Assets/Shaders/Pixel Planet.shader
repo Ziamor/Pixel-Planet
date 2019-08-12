@@ -7,6 +7,8 @@ Shader "Unlit/Pixel Planet"
     Properties
     {
         _PlanetTexture ("Texture", 2D) = "white" {}
+		_WaterMask("Water Mask", 2D) = "black" {}
+		_Tint ("Tint Color", Color) = (1,1,1,1)
 
 		_Offset ("Offset", Vector) = (0,0,0,0)
 		_Radius ("Radius", Float) = 1
@@ -51,6 +53,11 @@ Shader "Unlit/Pixel Planet"
 
             sampler2D _PlanetTexture;
             float4 _PlanetTexture_ST;
+
+			sampler2D _WaterMask;
+            float4 _WaterMask_ST;
+
+			fixed4 _Tint;
 
 			float2 _Offset;			
 			float _Radius;
@@ -109,7 +116,7 @@ Shader "Unlit/Pixel Planet"
 						// Normalize  back to range of [0,1] from [-1,1] 
 						float2 uv = float2(nx, ny) / 2 + 0.5;
 
-						fixed4 planetColor = tex2D(_PlanetTexture, uv - _Offset);
+						fixed4 planetColor = tex2D(_PlanetTexture, uv - _Offset) * _Tint;
 						//planetColor.a = 1;
 
 						float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);

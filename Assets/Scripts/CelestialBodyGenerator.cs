@@ -88,6 +88,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
             CelestialBody celestialBodyLayer = planetLayer.GetComponent<CelestialBody>();
             celestialBodyLayer.SetTexture(planetLayerTexture);
             celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
+            celestialBodyLayer.tint = celestialBodySettings.tint;
             celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
             celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
             celestialBodyLayer.scroll = true;
@@ -110,6 +111,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
+        int cloudPadding = 3;
         if (cloudPrefab != null && celestialBodySettings.cloudCentroids > 0) {
             Vector2[] cloudCentroids = new Vector2[celestialBodySettings.cloudCentroids];
             Vector2[] clouds = new Vector2[celestialBodySettings.cloundCount];
@@ -125,23 +127,23 @@ public class CelestialBodyGenerator : MonoBehaviour {
             int width = celestialBodySettings.cloudTextureSize;
             int height = celestialBodySettings.cloudTextureSize;
 
-            for (int k = 0; k < cloudTextures.Length * 3; k++) {
+            for (int k = 0; k < cloudTextures.Length * cloudPadding; k++) {
                 Texture2D cloudLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
                 cloudLayerTexture.filterMode = FilterMode.Point;
 
-                Color[] cloudColors = cloudTextures[k / 3].GetPixels();
+                Color[] cloudColors = cloudTextures[k / cloudPadding].GetPixels();
                 Color[] colors = new Color[width * height];
                 for (int i = 0; i < clouds.Length; i++) {
                     for (int j = 0; j < cloudColors.Length; j++) {
                         if (cloudColors[j].a == 0) continue;
-                        int localX = j % cloudTextures[k / 3].width;
-                        int localY = j / cloudTextures[k / 3].width;
+                        int localX = j % cloudTextures[k / cloudPadding].width;
+                        int localY = j / cloudTextures[k / cloudPadding].width;
 
                         int x = ((int)((clouds[i].x * width) % width) + localX) % width;
                         int y = ((int)((clouds[i].y * height) % height) + localY) % height;
 
                         int index = x * width + y;
-                        colors[index] = cloudColors[j];
+                        colors[index] = cloudColors[j] * celestialBodySettings.cloudTint.Evaluate(k / (float)(cloudTextures.Length * cloudPadding));
                     }
                 }
                 cloudLayerTexture.SetPixels(colors);
@@ -154,6 +156,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * celestialBodySettings.layers, 0);
                 cloud.scroll = true;
                 cloud.rotateSpeed = 0.002f;
+                cloud.tint = celestialBodySettings.cloudTint.Evaluate(k / (cloudTextures.Length * cloudPadding));
                 cloud.shadowColor = new Color(0.05288889f, 0.04848149f, 0.119f);
                 //cloud.roateSpeedVariance = Random.Range(0.8f, 1.2f);
             }

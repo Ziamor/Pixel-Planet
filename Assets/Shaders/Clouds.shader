@@ -7,11 +7,13 @@ Shader "Unlit/Pixel Clouds"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+		_CloudColor ("Cloud Color", Color) = (1,1,1,1)
 
 		[PerRendererData]_Offset ("Offset", Vector) = (0,0,0,0)
 		_Radius ("Radius", Float) = 1
 
 		_ShadowColor ("Shadow Color", Color) = (1,1,1,1)
+
     }
     SubShader
     {
@@ -43,6 +45,8 @@ Shader "Unlit/Pixel Clouds"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
+
+			fixed4 _CloudColor;
 
 			float2 _Offset;			
 			float _Radius;
@@ -94,7 +98,7 @@ Shader "Unlit/Pixel Clouds"
 						// Normalize  back to range of [0,1] from [-1,1] 
 						float2 uv = float2(nx, ny) / 2 + 0.5 - _Offset;
 
-						fixed4 planetColor = tex2D(_MainTex, uv);
+						fixed4 planetColor = tex2D(_MainTex, uv) * _CloudColor;
 						//planetColor.a = planetColor.r;
 
 						float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);

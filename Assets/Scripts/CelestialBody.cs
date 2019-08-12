@@ -8,7 +8,9 @@ public class CelestialBody : MonoBehaviour {
     public bool allowRotate = true;
     public bool scroll = false;
 
+    public Color tint = Color.white;
     public Color shadowColor = new Color(0.06652723f, 0.06652723f, 0.1226415f);
+
     Material mat;
     MaterialPropertyBlock propBlock;
     MeshRenderer meshRenderer;
@@ -17,6 +19,7 @@ public class CelestialBody : MonoBehaviour {
     Vector2 lastPos;
 
     Texture texture = null;
+    Texture waterMask = null;
 
     Transform sun;
 
@@ -28,7 +31,7 @@ public class CelestialBody : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (mat == null || propBlock == null || sun == null)
+        if (mat == null || propBlock == null)
             Init();
 
         if (texture == null) return;
@@ -48,13 +51,17 @@ public class CelestialBody : MonoBehaviour {
         }
         lastPos = currentPosition;
 
-        Vector3 lightDir = (sun.position - transform.position).normalized;
+        if (sun != null) {
+            Vector3 lightDir = (sun.position - transform.position).normalized;
+            propBlock.SetVector("_LightDir", lightDir);
+        }
 
         propBlock.SetTexture("_PlanetTexture", texture);
+        propBlock.SetTexture("_WaterMask", waterMask);
+        propBlock.SetColor("_Tint", tint);
         propBlock.SetFloat("_Radius", radius);
         propBlock.SetFloat("_ShadowStrength", shadowStrength);
         propBlock.SetColor("_ShadowColor", shadowColor);
-        propBlock.SetVector("_LightDir", lightDir);
         meshRenderer.SetPropertyBlock(propBlock);
     }
 
@@ -62,7 +69,9 @@ public class CelestialBody : MonoBehaviour {
         propBlock = new MaterialPropertyBlock();
         meshRenderer = GetComponent<MeshRenderer>();
         mat = meshRenderer.sharedMaterial;
-        sun = GameObject.Find("Sun").transform;
+        GameObject sunGameObject = GameObject.Find("Sun");
+        if (sunGameObject != null)
+            sun = sunGameObject.transform;
     }
 
     public void SetTexture(Texture tex) {
