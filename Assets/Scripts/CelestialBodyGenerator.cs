@@ -26,31 +26,17 @@ public class CelestialBodyGenerator : MonoBehaviour {
         int width = celestialBodySettings.bodyTextureSize;
         int height = celestialBodySettings.bodyTextureSize;
 
+        NoiseMapData noiseMapData = GenerateNoiseMap(celestialBodySettings);
+
         Color[][] colors = new Color[celestialBodySettings.layers][];
         Color[] waterMaskColors = new Color[width * height];
         for (int i = 0; i < colors.Length; i++) {
             colors[i] = new Color[width * height];
         }
-        float[,] noiseValues = new float[width, height];
 
-        float maxValue = float.MinValue;
-        float minValue = float.MaxValue;
-
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                Vector3 p = new Vector3();
-                p.x = i / (float)width;
-                p.y = j / (float)height;
-                float noiseValue = Evaluate(p) / 2 + 0.5f;
-                noiseValues[i, j] = noiseValue;
-
-                maxValue = Mathf.Max(maxValue, noiseValue);
-                minValue = Mathf.Min(minValue, noiseValue);
-            }
-        }
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                float noiseValue = Mathf.InverseLerp(minValue, maxValue, noiseValues[x, y]);
+                float noiseValue = Mathf.InverseLerp(noiseMapData.minValue, noiseMapData.maxValue, noiseMapData.noiseValues[x, y]);
 
                 if (celestialBodySettings.useColor) {
                     Color color;
@@ -111,7 +97,37 @@ public class CelestialBodyGenerator : MonoBehaviour {
         GenerateClouds();
     }
 
-    public void Clean() {
+    private NoiseMapData GenerateNoiseMap(CelestialBodySettings settings) {
+        int width = celestialBodySettings.bodyTextureSize;
+        int height = celestialBodySettings.bodyTextureSize;
+       
+        float[,] noiseValues = new float[width, height];
+
+        float maxValue = float.MinValue;
+        float minValue = float.MaxValue;
+
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                Vector3 p = new Vector3();
+                p.x = i / (float)width;
+                p.y = j / (float)height;
+                float noiseValue = Evaluate(p) / 2 + 0.5f;
+                noiseValues[i, j] = noiseValue;
+
+                maxValue = Mathf.Max(maxValue, noiseValue);
+                minValue = Mathf.Min(minValue, noiseValue);
+            }
+        }
+
+        NoiseMapData noiseMapData = new NoiseMapData();
+        noiseMapData.noiseValues = noiseValues;
+        noiseMapData.minValue = minValue;
+        noiseMapData.maxValue = maxValue;
+
+        return noiseMapData;
+    }
+
+    private void Clean() {
         int childs = transform.childCount;
         for (int i = childs - 1; i >= 0; i--) {
             if (Application.isPlaying)
