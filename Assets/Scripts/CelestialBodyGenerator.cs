@@ -1,7 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 public class CelestialBodyGenerator : MonoBehaviour {
     public CelestialBodySettings celestialBodySettings;
@@ -24,56 +23,47 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
     public void GeneratePlanet() {
         Clean();
+        GenerateSurface();
+        GenerateClouds();
+    }
 
-        int width = celestialBodySettings.bodyTextureSize;
-        int height = celestialBodySettings.bodyTextureSize;
+    private void GenerateSurface() {
+        int width = celestialBodySettings.textureSize;
+        int height = celestialBodySettings.textureSize;
 
-        NoiseMapData noiseMapData = GenerateNoiseMap(celestialBodySettings);
+        NoiseMapData noiseMapData = GenerateNoiseMap(width, height, celestialBodySettings.noiseSettings);
 
-        CelestialBodyData celestialBodyData = GenerateCelestialBodyData(celestialBodySettings, noiseMapData);
+        CelestialBodyColorMap celestialBodyData = GenerateCelestialBodyColorMap(width, height, celestialBodySettings.colorSettings, noiseMapData);
 
         Texture2D nightGlowMask = new Texture2D(width, height, TextureFormat.RGBA32, false);
         nightGlowMask.filterMode = FilterMode.Point;
-
         nightGlowMask.SetPixels(celestialBodyData.nightGlowColorMap);
         nightGlowMask.Apply();
 
         for (int i = 0; i < celestialBodyData.layerColorMaps.GetLength(0); i++) {
-            AddCelestialBodyLayer(width, height, i, celestialBodyData.layerColorMaps[i], nightGlowMask);
+            AddCelestialBodyLayer(width, height, i, celestialBodyData.layerColorMaps[i], nightGlowMask, celestialBodySettings);
         }
-
-        GenerateClouds();
     }
 
-    private void AddCelestialBodyLayer(int width, int height, int layerIndex, Color[] colorMap, Texture2D nightGlowMask) {
+    private void AddCelestialBodyLayer(int width, int height, int layerIndex, Color[] colorMap, Texture2D nightGlowMask, CelestialBodySettings celestialBodySettings) {
         GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
         planetLayer.name = "Celestial Body Layer " + layerIndex;
+
         Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
         planetLayerTexture.filterMode = FilterMode.Point;
-
         planetLayerTexture.SetPixels(colorMap);
         planetLayerTexture.Apply();
 
         CelestialBodyLayer celestialBodyLayer = planetLayer.GetComponent<CelestialBodyLayer>();
-        celestialBodyLayer.SetTexture(planetLayerTexture);
-        celestialBodyLayer.SetWaterMask(nightGlowMask);
-        celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * layerIndex;
-        celestialBodyLayer.tint = celestialBodySettings.tint;
-        celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
-        celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
-        celestialBodyLayer.scroll = true;
-        celestialBodyLayer.rotateSpeed = 0.001f;
+        celestialBodyLayer.Configure(layerIndex, planetLayerTexture, nightGlowMask, celestialBodySettings.shapeSettings, celestialBodySettings.colorSettings);
 
-        if (celestialBodySettings.hasNightGlow)
-            celestialBodyLayer.EnableNightGlow();
+
         planetLayer.transform.localPosition = new Vector3(0, 0.01f * layerIndex, 0);
     }
 
-    private CelestialBodyData GenerateCelestialBodyData(CelestialBodySettings celestialBodySettings, NoiseMapData noiseMapData) {
-        int width = celestialBodySettings.bodyTextureSize;
-        int height = celestialBodySettings.bodyTextureSize;
+    private CelestialBodyColorMap GenerateCelestialBodyColorMap(int width, int height, ColorSettings colorSettings, NoiseMapData noiseMapData) {
 
-        Color[][] layerColorMaps = new Color[celestialBodySettings.layers][];
+        Color[][] layerColorMaps = new Color[colorSettings.layers][];
         Color[] nightGlowColorMap = new Color[width * height];
 
         for (int i = 0; i < layerColorMaps.Length; i++) {
@@ -84,20 +74,20 @@ public class CelestialBodyGenerator : MonoBehaviour {
             for (int y = 0; y < height; y++) {
                 float noiseValue = Mathf.InverseLerp(noiseMapData.minValue, noiseMapData.maxValue, noiseMapData.noiseValues[x, y]);
 
-                if (celestialBodySettings.useColor) {
+                if (colorSettings.useColor) {
                     Color color;
                     int index = 0;
-                    if (noiseValue >= celestialBodySettings.waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(celestialBodySettings.waterLevel == 0 ? 0 : 1 - celestialBodySettings.waterLevel, 1, noiseValue);
-                        if (celestialBodySettings.reducedTones)
-                            normalisedValue = Mathf.Round(normalisedValue * celestialBodySettings.landTones) / celestialBodySettings.landTones;
-                        color = celestialBodySettings.landGradient.Evaluate(normalisedValue);
+                    if (noiseValue >= colorSettings.waterLevel) {
+                        float normalisedValue = Mathf.InverseLerp(colorSettings.waterLevel == 0 ? 0 : 1 - colorSettings.waterLevel, 1, noiseValue);
+                        if (colorSettings.reducedTones)
+                            normalisedValue = Mathf.Round(normalisedValue * colorSettings.landTones) / colorSettings.landTones;
+                        color = colorSettings.landGradient.Evaluate(normalisedValue);
                         index = (int)Mathf.Round(normalisedValue * (layerColorMaps.GetLength(0) - 1));
                     } else {
-                        float normalisedValue = Mathf.InverseLerp(0, celestialBodySettings.waterLevel, noiseValue);
-                        if (celestialBodySettings.reducedTones)
-                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, celestialBodySettings.toneFalloff)) * celestialBodySettings.waterTones) / celestialBodySettings.waterTones;
-                        color = celestialBodySettings.waterGradient.Evaluate(normalisedValue);
+                        float normalisedValue = Mathf.InverseLerp(0, colorSettings.waterLevel, noiseValue);
+                        if (colorSettings.reducedTones)
+                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, colorSettings.toneFalloff)) * colorSettings.waterTones) / colorSettings.waterTones;
+                        color = colorSettings.waterGradient.Evaluate(normalisedValue);
                         nightGlowColorMap[x + y * width] = Color.white;
                     }
 
@@ -110,17 +100,14 @@ public class CelestialBodyGenerator : MonoBehaviour {
             }
         }
 
-        CelestialBodyData celestialBodyData = new CelestialBodyData();
+        CelestialBodyColorMap celestialBodyData = new CelestialBodyColorMap();
         celestialBodyData.layerColorMaps = layerColorMaps;
         celestialBodyData.nightGlowColorMap = nightGlowColorMap;
 
         return celestialBodyData;
     }
 
-    private NoiseMapData GenerateNoiseMap(CelestialBodySettings settings) {
-        int width = celestialBodySettings.bodyTextureSize;
-        int height = celestialBodySettings.bodyTextureSize;
-
+    private NoiseMapData GenerateNoiseMap(int width, int height, NoiseSettings noiseSettings) {
         float[,] noiseValues = new float[width, height];
 
         float maxValue = float.MinValue;
@@ -131,7 +118,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 Vector3 p = new Vector3();
                 p.x = i / (float)width;
                 p.y = j / (float)height;
-                float noiseValue = Evaluate(p) / 2 + 0.5f;
+                float noiseValue = Evaluate(p, noiseSettings) / 2 + 0.5f;
                 noiseValues[i, j] = noiseValue;
 
                 maxValue = Mathf.Max(maxValue, noiseValue);
@@ -158,22 +145,22 @@ public class CelestialBodyGenerator : MonoBehaviour {
         }
     }
     public void GenerateClouds() {
-        int cloudPadding = 3;
-        if (cloudPrefab != null && celestialBodySettings.cloudCentroids > 0 && celestialBodySettings.cloundCount > 0) {
+        /*int cloudPadding = 3;
+        if (cloudPrefab != null && old_celestialBodySettings.cloudCentroids > 0 && old_celestialBodySettings.cloundCount > 0) {
 
-            Vector2[] cloudCentroids = new Vector2[celestialBodySettings.cloudCentroids];
-            Vector2[] clouds = new Vector2[celestialBodySettings.cloundCount];
+            Vector2[] cloudCentroids = new Vector2[old_celestialBodySettings.cloudCentroids];
+            Vector2[] clouds = new Vector2[old_celestialBodySettings.cloundCount];
             for (int i = 0; i < cloudCentroids.Length; i++) {
                 cloudCentroids[i] = new Vector2(Random.value, Random.value);
             }
 
-            for (int i = 0; i < celestialBodySettings.cloundCount; i++) {
+            for (int i = 0; i < old_celestialBodySettings.cloundCount; i++) {
                 int index = Random.Range(0, cloudCentroids.Length - 1);
-                clouds[i] = cloudCentroids[index] + (Random.insideUnitCircle + Vector2.one) / 2 * celestialBodySettings.cloudDensity;
+                clouds[i] = cloudCentroids[index] + (Random.insideUnitCircle + Vector2.one) / 2 * old_celestialBodySettings.cloudDensity;
             }
 
-            int width = celestialBodySettings.cloudTextureSize;
-            int height = celestialBodySettings.cloudTextureSize;
+            int width = old_celestialBodySettings.cloudTextureSize;
+            int height = old_celestialBodySettings.cloudTextureSize;
 
             Texture2D waterMaskTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             waterMaskTexture.filterMode = FilterMode.Point;
@@ -197,7 +184,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                         int y = ((int)((clouds[i].y * height) % height) + localY) % height;
 
                         int index = x * width + y;
-                        colors[index] = cloudColors[j] * celestialBodySettings.cloudTint.Evaluate(k / (float)(cloudTextures.Length * cloudPadding));
+                        colors[index] = cloudColors[j] * old_celestialBodySettings.cloudTint.Evaluate(k / (float)(cloudTextures.Length * cloudPadding));
                     }
                 }
                 cloudLayerTexture.SetPixels(colors);
@@ -205,30 +192,31 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
                 CelestialBodyLayer cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBodyLayer>();
                 cloud.gameObject.name = "Cloud Layer " + k;
-                cloud.SetTexture(cloudLayerTexture);
-                cloud.SetWaterMask(waterMaskTexture);
-                cloud.radius = celestialBodySettings.cloudRadiusStart + celestialBodySettings.cloudRadiusChange * k;
+
+                cloud.Configure(k, cloudLayerTexture, waterMaskTexture, old_celestialBodySettings);
+
+                cloud.radius = old_celestialBodySettings.cloudRadiusStart + old_celestialBodySettings.cloudRadiusChange * k;
                 cloud.allowRotate = true;
-                cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * celestialBodySettings.layers, 0);
+                cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * old_celestialBodySettings.layers, 0);
                 cloud.scroll = true;
                 cloud.rotateSpeed = 0.002f;
-                cloud.tint = celestialBodySettings.cloudTint.Evaluate(k / (cloudTextures.Length * cloudPadding));
+                cloud.tint = old_celestialBodySettings.cloudTint.Evaluate(k / (cloudTextures.Length * cloudPadding));
                 cloud.shadowColor = new Color(0.05288889f, 0.04848149f, 0.119f);
                 //cloud.roateSpeedVariance = Random.Range(0.8f, 1.2f);
             }
-        }
+        }*/
     }
 
-    public float Evaluate(Vector3 point) {
+    public float Evaluate(Vector3 point, NoiseSettings noiseSettings) {
         float noiseValue = 0;
-        float frequency = celestialBodySettings.baseRoughness;
+        float frequency = noiseSettings.baseRoughness;
         float amplitude = 1;
 
-        for (int i = 0; i < celestialBodySettings.octaves; i++) {
-            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency * celestialBodySettings.dx, frequency * celestialBodySettings.dy, celestialBodySettings.seed);
+        for (int i = 0; i < noiseSettings.octaves; i++) {
+            float v = SimplexNoise.SeamlessNoise(point.x, point.y, frequency * noiseSettings.dx, frequency * noiseSettings.dy, noiseSettings.seed);
             noiseValue += (v + 1) * 0.5f * amplitude;
-            frequency *= celestialBodySettings.roughness;
-            amplitude *= celestialBodySettings.persistance;
+            frequency *= noiseSettings.roughness;
+            amplitude *= noiseSettings.persistance;
         }
 
         return noiseValue;
@@ -285,7 +273,7 @@ public struct NoiseMapData {
     public float[,] noiseValues;
 }
 
-public struct CelestialBodyData {
+public struct CelestialBodyColorMap {
     public Color[][] layerColorMaps;
     public Color[] nightGlowColorMap;
 }

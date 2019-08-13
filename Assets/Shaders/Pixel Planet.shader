@@ -6,7 +6,7 @@ Shader "Unlit/Pixel Planet"
 {
     Properties
     {
-        _PlanetTexture ("Texture", 2D) = "white" {}
+        _SurfaceTexture ("Surface Texture", 2D) = "white" {}
 		_WaterMask("Water Mask", 2D) = "black" {}
 		_Tint ("Tint Color", Color) = (1,1,1,1)
 
@@ -59,8 +59,8 @@ Shader "Unlit/Pixel Planet"
 				float keep;
 			};
 
-            sampler2D _PlanetTexture;
-            float4 _PlanetTexture_ST;
+            sampler2D _SurfaceTexture;
+            float4 _SurfaceTexture_ST;
 
 			sampler2D _WaterMask;
             float4 _WaterMask_ST;
@@ -87,7 +87,7 @@ Shader "Unlit/Pixel Planet"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv + float2(_Offset.x / 2, _Offset.y / 2), _PlanetTexture); 
+                o.uv = TRANSFORM_TEX(v.uv + float2(_Offset.x / 2, _Offset.y / 2), _SurfaceTexture); 
 				o.worldvertpos = mul(unity_ObjectToWorld, v.vertex).xyz;
                 return o;
             }
@@ -131,7 +131,7 @@ Shader "Unlit/Pixel Planet"
 						// Normalize  back to range of [0,1] from [-1,1] 
 						float2 uv = float2(nx, ny) / 2 + 0.5;
 
-						pData.color = tex2D(_PlanetTexture, uv - _Offset) * _Tint;
+						pData.color = tex2D(_SurfaceTexture, uv - _Offset) * _Tint;
 
 						float3 center = float3(0,0,0);
 						float3 origin = float3(n.x,n.y, -1);				

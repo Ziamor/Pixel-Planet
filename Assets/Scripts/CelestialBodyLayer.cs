@@ -18,8 +18,8 @@ public class CelestialBodyLayer : MonoBehaviour {
     Vector2 rot;
     Vector2 lastPos;
 
-    Texture texture = null;
-    Texture waterMask = null;
+    Texture surfaceTexture = null;
+    Texture nightGlowTexture = null;
 
     Transform sun;
 
@@ -35,7 +35,7 @@ public class CelestialBodyLayer : MonoBehaviour {
         if (mat == null || propBlock == null)
             Init();
 
-        if (texture == null || waterMask == null) return;
+        if (surfaceTexture == null || nightGlowTexture == null) return;
 
         meshRenderer.GetPropertyBlock(propBlock);
         Vector2 currentPosition = Input.mousePosition;
@@ -57,8 +57,8 @@ public class CelestialBodyLayer : MonoBehaviour {
             propBlock.SetVector("_LightDir", lightDir);
         }
 
-        propBlock.SetTexture("_PlanetTexture", texture);
-        propBlock.SetTexture("_WaterMask", waterMask);
+        propBlock.SetTexture("_SurfaceTexture", surfaceTexture);
+        propBlock.SetTexture("_WaterMask", nightGlowTexture);
         propBlock.SetColor("_Tint", tint);
         propBlock.SetFloat("_Radius", radius);
         propBlock.SetFloat("_ShadowStrength", shadowStrength);
@@ -76,24 +76,15 @@ public class CelestialBodyLayer : MonoBehaviour {
             sun = sunGameObject.transform;
     }
 
-    public void SetTexture(Texture tex) {
-        if (mat == null)
-            Init();
-
-        texture = tex;
-    }
-
-    public void SetWaterMask(Texture tex) {
-        if (mat == null)
-            Init();
-
-        waterMask = tex;
-    }
-
-    public void EnableNightGlow() {
-        if (mat == null)
-            Init();
-        nightGlow = 1;
-        //mat.EnableKeyword("NIGHT_GLOW_ON");
+    public void Configure(int layerIndex, Texture surfaceTexture, Texture nightGlowTexture, BodySettings shapeSettings, ColorSettings colorSettings) {
+        this.surfaceTexture = surfaceTexture;
+        this.nightGlowTexture = nightGlowTexture;
+        this.radius = shapeSettings.baseRadius + shapeSettings.radiusChange * layerIndex;
+        this.tint = colorSettings.tint;
+        this.shadowStrength = colorSettings.shadowStrength;
+        this.allowRotate = shapeSettings.allowRotate;
+        this.scroll = true;
+        this.rotateSpeed = 0.001f;
+        this.nightGlow = shapeSettings.hasNightGlow ? 1 : 0;
     }
 }
