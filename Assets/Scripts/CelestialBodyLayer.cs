@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 [ExecuteInEditMode]
-public class CelestialBody : MonoBehaviour {
+public class CelestialBodyLayer : MonoBehaviour {
     public float rotateSpeed = 1;
     public float radius = 1;
     public float shadowStrength = 1f;

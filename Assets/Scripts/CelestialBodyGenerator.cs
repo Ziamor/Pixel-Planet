@@ -1,5 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 public class CelestialBodyGenerator : MonoBehaviour {
     public CelestialBodySettings celestialBodySettings;
@@ -28,10 +30,54 @@ public class CelestialBodyGenerator : MonoBehaviour {
 
         NoiseMapData noiseMapData = GenerateNoiseMap(celestialBodySettings);
 
-        Color[][] colors = new Color[celestialBodySettings.layers][];
-        Color[] waterMaskColors = new Color[width * height];
-        for (int i = 0; i < colors.Length; i++) {
-            colors[i] = new Color[width * height];
+        CelestialBodyData celestialBodyData = GenerateCelestialBodyData(celestialBodySettings, noiseMapData);
+
+        Texture2D nightGlowMask = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        nightGlowMask.filterMode = FilterMode.Point;
+
+        nightGlowMask.SetPixels(celestialBodyData.nightGlowColorMap);
+        nightGlowMask.Apply();
+
+        for (int i = 0; i < celestialBodyData.layerColorMaps.GetLength(0); i++) {
+            AddCelestialBodyLayer(width, height, i, celestialBodyData.layerColorMaps[i], nightGlowMask);
+        }
+
+        GenerateClouds();
+    }
+
+    private void AddCelestialBodyLayer(int width, int height, int layerIndex, Color[] colorMap, Texture2D nightGlowMask) {
+        GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
+        planetLayer.name = "Celestial Body Layer " + layerIndex;
+        Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        planetLayerTexture.filterMode = FilterMode.Point;
+
+        planetLayerTexture.SetPixels(colorMap);
+        planetLayerTexture.Apply();
+
+        CelestialBodyLayer celestialBodyLayer = planetLayer.GetComponent<CelestialBodyLayer>();
+        celestialBodyLayer.SetTexture(planetLayerTexture);
+        celestialBodyLayer.SetWaterMask(nightGlowMask);
+        celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * layerIndex;
+        celestialBodyLayer.tint = celestialBodySettings.tint;
+        celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
+        celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
+        celestialBodyLayer.scroll = true;
+        celestialBodyLayer.rotateSpeed = 0.001f;
+
+        if (celestialBodySettings.hasNightGlow)
+            celestialBodyLayer.EnableNightGlow();
+        planetLayer.transform.localPosition = new Vector3(0, 0.01f * layerIndex, 0);
+    }
+
+    private CelestialBodyData GenerateCelestialBodyData(CelestialBodySettings celestialBodySettings, NoiseMapData noiseMapData) {
+        int width = celestialBodySettings.bodyTextureSize;
+        int height = celestialBodySettings.bodyTextureSize;
+
+        Color[][] layerColorMaps = new Color[celestialBodySettings.layers][];
+        Color[] nightGlowColorMap = new Color[width * height];
+
+        for (int i = 0; i < layerColorMaps.Length; i++) {
+            layerColorMaps[i] = new Color[width * height];
         }
 
         for (int x = 0; x < width; x++) {
@@ -46,17 +92,17 @@ public class CelestialBodyGenerator : MonoBehaviour {
                         if (celestialBodySettings.reducedTones)
                             normalisedValue = Mathf.Round(normalisedValue * celestialBodySettings.landTones) / celestialBodySettings.landTones;
                         color = celestialBodySettings.landGradient.Evaluate(normalisedValue);
-                        index = (int)Mathf.Round(normalisedValue * (colors.GetLength(0) - 1));
+                        index = (int)Mathf.Round(normalisedValue * (layerColorMaps.GetLength(0) - 1));
                     } else {
                         float normalisedValue = Mathf.InverseLerp(0, celestialBodySettings.waterLevel, noiseValue);
                         if (celestialBodySettings.reducedTones)
                             normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, celestialBodySettings.toneFalloff)) * celestialBodySettings.waterTones) / celestialBodySettings.waterTones;
                         color = celestialBodySettings.waterGradient.Evaluate(normalisedValue);
-                        waterMaskColors[x + y * width] = Color.white;
+                        nightGlowColorMap[x + y * width] = Color.white;
                     }
 
                     for (int i = 0; i < 1 + index; i++) {
-                        colors[i][x + y * width] = color;
+                        layerColorMaps[i][x + y * width] = color;
                     }
                 } else {
                     //colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
@@ -64,43 +110,17 @@ public class CelestialBodyGenerator : MonoBehaviour {
             }
         }
 
-        Texture2D waterMaskTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        waterMaskTexture.filterMode = FilterMode.Point;
+        CelestialBodyData celestialBodyData = new CelestialBodyData();
+        celestialBodyData.layerColorMaps = layerColorMaps;
+        celestialBodyData.nightGlowColorMap = nightGlowColorMap;
 
-        waterMaskTexture.SetPixels(waterMaskColors);
-        waterMaskTexture.Apply();
-
-        for (int i = 0; i < colors.GetLength(0); i++) {
-            GameObject planetLayer = Instantiate(planetLayerPrefab, transform);
-            planetLayer.name = "Plant Layer " + i;
-            Texture2D planetLayerTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            planetLayerTexture.filterMode = FilterMode.Point;
-
-            planetLayerTexture.SetPixels(colors[i]);
-            planetLayerTexture.Apply();
-
-            CelestialBody celestialBodyLayer = planetLayer.GetComponent<CelestialBody>();
-            celestialBodyLayer.SetTexture(planetLayerTexture);
-            celestialBodyLayer.SetWaterMask(waterMaskTexture);
-            celestialBodyLayer.radius = celestialBodySettings.baseRadius + celestialBodySettings.radiusChange * i;
-            celestialBodyLayer.tint = celestialBodySettings.tint;
-            celestialBodyLayer.shadowStrength = celestialBodySettings.shadowStrength;
-            celestialBodyLayer.allowRotate = celestialBodySettings.allowRotate;
-            celestialBodyLayer.scroll = true;
-            celestialBodyLayer.rotateSpeed = 0.001f;
-
-            if (celestialBodySettings.hasNightGlow)
-                celestialBodyLayer.EnableNightGlow();
-            planetLayer.transform.localPosition = new Vector3(0, 0.01f * i, 0);
-        }
-
-        GenerateClouds();
+        return celestialBodyData;
     }
 
     private NoiseMapData GenerateNoiseMap(CelestialBodySettings settings) {
         int width = celestialBodySettings.bodyTextureSize;
         int height = celestialBodySettings.bodyTextureSize;
-       
+
         float[,] noiseValues = new float[width, height];
 
         float maxValue = float.MinValue;
@@ -183,7 +203,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 cloudLayerTexture.SetPixels(colors);
                 cloudLayerTexture.Apply();
 
-                CelestialBody cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBody>();
+                CelestialBodyLayer cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBodyLayer>();
                 cloud.gameObject.name = "Cloud Layer " + k;
                 cloud.SetTexture(cloudLayerTexture);
                 cloud.SetWaterMask(waterMaskTexture);
@@ -256,4 +276,16 @@ public class PlanetEditor : Editor {
     private void OnEnable() {
         planetGenerator = (CelestialBodyGenerator)target;
     }
+}
+
+public struct NoiseMapData {
+    public float minValue;
+    public float maxValue;
+
+    public float[,] noiseValues;
+}
+
+public struct CelestialBodyData {
+    public Color[][] layerColorMaps;
+    public Color[] nightGlowColorMap;
 }

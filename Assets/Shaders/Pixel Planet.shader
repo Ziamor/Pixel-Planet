@@ -155,10 +155,7 @@ Shader "Unlit/Pixel Planet"
 				fixed4 planetColor = pData.color * _Tint;
 				fixed4 watermask = tex2D(_WaterMask, pData.uv - _Offset);
 
-				float3 viewdir = normalize(_WorldSpaceCameraPos-i.worldvertpos);
-
-				float ndotl = saturate(dot(pData.normal, _LightDir.xyz));
-				//float atmoStrength = pow(1 - saturate(round(dot(pData.normal, viewdir) * _AtmosphereLevels) / _AtmosphereLevels),_AtmosphereFalloff) * _AtmosphereStrength * planetColor.a;
+				float ndotl = saturate(dot(pData.normal, _LightDir.xyz));				
 
 				float steppedNdotl = step(0.0001, fixed4(ndotl,ndotl,ndotl,1)) * _ShadowStrength + (1 - _ShadowStrength);
 
