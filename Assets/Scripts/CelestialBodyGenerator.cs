@@ -74,28 +74,50 @@ public class CelestialBodyGenerator : MonoBehaviour {
             for (int y = 0; y < height; y++) {
                 float noiseValue = Mathf.InverseLerp(noiseMapData.minValue, noiseMapData.maxValue, noiseMapData.noiseValues[x, y]);
 
-                if (colorSettings.useColor) {
-                    Color color;
-                    int index = 0;
-                    if (noiseValue >= colorSettings.waterLevel) {
-                        float normalisedValue = Mathf.InverseLerp(colorSettings.waterLevel == 0 ? 0 : 1 - colorSettings.waterLevel, 1, noiseValue);
-                        if (colorSettings.reducedTones)
-                            normalisedValue = Mathf.Round(normalisedValue * colorSettings.landTones) / colorSettings.landTones;
-                        color = colorSettings.landGradient.Evaluate(normalisedValue);
-                        index = (int)Mathf.Round(normalisedValue * (layerColorMaps.GetLength(0) - 1));
-                    } else {
-                        float normalisedValue = Mathf.InverseLerp(0, colorSettings.waterLevel, noiseValue);
-                        if (colorSettings.reducedTones)
-                            normalisedValue = Mathf.Round((Mathf.Pow(normalisedValue, colorSettings.toneFalloff)) * colorSettings.waterTones) / colorSettings.waterTones;
-                        color = colorSettings.waterGradient.Evaluate(normalisedValue);
-                        nightGlowColorMap[x + y * width] = Color.white;
-                    }
+                float minRange = 0;
+                float maxRange = 1;
 
-                    for (int i = 0; i < 1 + index; i++) {
-                        layerColorMaps[i][x + y * width] = color;
-                    }
+                int index = 0;
+
+                Gradient gradient;
+                float tones = 1;
+                float toneFalloff = 1;
+                bool isLand = false;
+                if (noiseValue >= colorSettings.waterLevel) {
+                    if (colorSettings.waterLevel > 0)
+                        minRange = 1 - colorSettings.waterLevel;
+
+                    gradient = colorSettings.landGradient;
+                    tones = colorSettings.landTones;
+                    isLand = true;
                 } else {
-                    //colors[x + y * width] = new Color(noiseValue, noiseValue, noiseValue);
+                    maxRange = colorSettings.waterLevel;
+                    gradient = colorSettings.waterGradient;
+                    tones = colorSettings.waterTones;
+                    toneFalloff = colorSettings.toneFalloff;
+                    nightGlowColorMap[x + y * width] = Color.white;
+                }
+
+                float normalisedValue = Mathf.InverseLerp(minRange, maxRange, noiseValue);
+
+                if (toneFalloff != 1)
+                    normalisedValue = Mathf.Pow(normalisedValue, toneFalloff);
+
+                if (colorSettings.reducedTones)
+                    normalisedValue = Mathf.Round(normalisedValue * tones) / tones;
+
+                if(isLand)
+                    index = (int)Mathf.Round(normalisedValue * (layerColorMaps.GetLength(0) - 1));
+
+                Color textureColor;
+                if (colorSettings.useColor) {
+                    textureColor = gradient.Evaluate(normalisedValue);
+                } else {
+                    textureColor = new Color(normalisedValue, normalisedValue, normalisedValue);
+                }
+
+                for (int i = 0; i < 1 + index; i++) {
+                    layerColorMaps[i][x + y * width] = textureColor;
                 }
             }
         }
