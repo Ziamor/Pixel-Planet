@@ -16,7 +16,6 @@ public class CelestialBodyLayer : MonoBehaviour {
     MeshRenderer meshRenderer;
 
     Vector2 rot;
-    Vector2 lastPos;
 
     Texture surfaceTexture = null;
     Texture nightGlowTexture = null;
@@ -29,7 +28,6 @@ public class CelestialBodyLayer : MonoBehaviour {
     // Start is called before the first frame update
     void Start() {
         Init();
-        lastPos = Input.mousePosition;
     }
 
     // Update is called once per frame
@@ -40,19 +38,11 @@ public class CelestialBodyLayer : MonoBehaviour {
         if (surfaceTexture == null || nightGlowTexture == null) return;
 
         meshRenderer.GetPropertyBlock(propBlock);
-        Vector2 currentPosition = Input.mousePosition;
-
-        if (allowRotate && Input.GetMouseButton(0)) {
-            Vector2 dir = (currentPosition - lastPos).normalized;
-            rot += dir * rotateSpeed;
-            propBlock.SetVector("_Offset", rot);
-        }
 
         if (scroll) {
             rot += Vector2.right * rotateSpeed;
             propBlock.SetVector("_Offset", rot);
         }
-        lastPos = currentPosition;
 
         if (sun != null) {
             Vector3 lightDir = (sun.position - transform.position).normalized;
