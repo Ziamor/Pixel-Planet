@@ -10,7 +10,8 @@ public class CelestialBodySettings : ScriptableObject {
 
     public NoiseSettings noiseSettings;
     public BodySettings shapeSettings;
-    public ColorSettings colorSettings;    
+    public ColorSettings colorSettings;
+    public CloudSettings cloudSettings;
 }
 
 [System.Serializable]
@@ -48,8 +49,11 @@ public class ColorSettings {
     public int layers = 4;
     public Color tint = Color.white;
 
-    public float shadowStrength = 1f;
+    public float shadowStrength = 1f;   
+}
 
+[System.Serializable]
+public class CloudSettings {
     public float cloudRadiusStart = 0.56f;
     public float cloudRadiusChange = 0.001f;
     public int cloudCentroids = 0;

@@ -24,6 +24,8 @@ public class CelestialBodyLayer : MonoBehaviour {
     Transform sun;
 
     float nightGlow;
+
+    Zoom zoom;
     // Start is called before the first frame update
     void Start() {
         Init();
@@ -60,7 +62,7 @@ public class CelestialBodyLayer : MonoBehaviour {
         propBlock.SetTexture("_SurfaceTexture", surfaceTexture);
         propBlock.SetTexture("_WaterMask", nightGlowTexture);
         propBlock.SetColor("_Tint", tint);
-        propBlock.SetFloat("_Radius", radius);
+        propBlock.SetFloat("_Radius", radius * zoom.ZoomLevel);
         propBlock.SetFloat("_ShadowStrength", shadowStrength);
         propBlock.SetColor("_ShadowColor", shadowColor);
         propBlock.SetFloat("_NightGlow", nightGlow);
@@ -68,6 +70,7 @@ public class CelestialBodyLayer : MonoBehaviour {
     }
 
     void Init() {
+        zoom = FindObjectOfType<Zoom>();
         propBlock = new MaterialPropertyBlock();
         meshRenderer = GetComponent<MeshRenderer>();
         mat = meshRenderer.sharedMaterial;

@@ -40,7 +40,7 @@ MonoBehaviour:
       key7: {r: 0, g: 0, b: 0, a: 0}
       ctime0: 0
       ctime1: 26600
-      ctime2: 59367
+      ctime2: 65535
       ctime3: 0
       ctime4: 0
       ctime5: 0
@@ -95,6 +95,7 @@ MonoBehaviour:
     layers: 3
     tint: {r: 1, g: 1, b: 1, a: 1}
     shadowStrength: 1
+  cloudSettings:
     cloudRadiusStart: 0.56
     cloudRadiusChange: 0.001
     cloudCentroids: 0

@@ -15,13 +15,13 @@ MonoBehaviour:
   noiseSettingsFoldout: 0
   textureSize: 128
   noiseSettings:
-    seed: 1234
-    dx: 0.5
-    dy: 0.5
+    seed: 1
+    dx: 1
+    dy: 1
     octaves: 6
-    persistance: 0.65
-    baseRoughness: 1.5
-    roughness: 2
+    persistance: 0.6
+    baseRoughness: 1.2
+    roughness: 2.2
   shapeSettings:
     baseRadius: 0.5
     radiusChange: 0.004
@@ -30,7 +30,7 @@ MonoBehaviour:
   colorSettings:
     landGradient:
       serializedVersion: 2
-      key0: {r: 0.1509434, g: 0.1260235, b: 0.1260235, a: 1}
+      key0: {r: 0.1509434, g: 0.11747953, b: 0.11747953, a: 1}
       key1: {r: 0.08627451, g: 0.03137255, b: 0.03137255, a: 1}
       key2: {r: 0.08627451, g: 0.03137255, b: 0.03137255, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
@@ -91,10 +91,11 @@ MonoBehaviour:
     waterTones: 6
     reducedTones: 1
     toneFalloff: 1.82
-    waterLevel: 0.3
-    layers: 16
+    waterLevel: 0.5
+    layers: 8
     tint: {r: 1, g: 1, b: 1, a: 1}
     shadowStrength: 1
+  cloudSettings:
     cloudRadiusStart: 0.56
     cloudRadiusChange: 0.001
     cloudCentroids: 0

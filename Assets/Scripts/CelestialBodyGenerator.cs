@@ -22,9 +22,13 @@ public class CelestialBodyGenerator : MonoBehaviour {
     }
 
     public void GeneratePlanet() {
+        //Temp, move later
+        int width = 256;
+        int height = 256;
+
         Clean();
         GenerateSurface();
-        GenerateClouds();
+        GenerateClouds(width, height, celestialBodySettings.cloudSettings);
     }
 
     private void GenerateSurface() {
@@ -83,6 +87,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 float tones = 1;
                 float toneFalloff = 1;
                 bool isLand = false;
+
                 if (noiseValue >= colorSettings.waterLevel) {
                     if (colorSettings.waterLevel > 0)
                         minRange = 1 - colorSettings.waterLevel;
@@ -166,23 +171,20 @@ public class CelestialBodyGenerator : MonoBehaviour {
             }
         }
     }
-    public void GenerateClouds() {
-        /*int cloudPadding = 3;
-        if (cloudPrefab != null && old_celestialBodySettings.cloudCentroids > 0 && old_celestialBodySettings.cloundCount > 0) {
+    public void GenerateClouds(int width, int height, CloudSettings cloudSettings) {
+        int cloudPadding = 3;
+        if (cloudPrefab != null && cloudSettings.cloudCentroids > 0 && cloudSettings.cloundCount > 0) {
 
-            Vector2[] cloudCentroids = new Vector2[old_celestialBodySettings.cloudCentroids];
-            Vector2[] clouds = new Vector2[old_celestialBodySettings.cloundCount];
+            Vector2[] cloudCentroids = new Vector2[cloudSettings.cloudCentroids];
+            Vector2[] clouds = new Vector2[cloudSettings.cloundCount];
             for (int i = 0; i < cloudCentroids.Length; i++) {
                 cloudCentroids[i] = new Vector2(Random.value, Random.value);
             }
 
-            for (int i = 0; i < old_celestialBodySettings.cloundCount; i++) {
+            for (int i = 0; i < cloudSettings.cloundCount; i++) {
                 int index = Random.Range(0, cloudCentroids.Length - 1);
-                clouds[i] = cloudCentroids[index] + (Random.insideUnitCircle + Vector2.one) / 2 * old_celestialBodySettings.cloudDensity;
+                clouds[i] = cloudCentroids[index] + (Random.insideUnitCircle + Vector2.one) / 2 * cloudSettings.cloudDensity;
             }
-
-            int width = old_celestialBodySettings.cloudTextureSize;
-            int height = old_celestialBodySettings.cloudTextureSize;
 
             Texture2D waterMaskTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
             waterMaskTexture.filterMode = FilterMode.Point;
@@ -206,7 +208,7 @@ public class CelestialBodyGenerator : MonoBehaviour {
                         int y = ((int)((clouds[i].y * height) % height) + localY) % height;
 
                         int index = x * width + y;
-                        colors[index] = cloudColors[j] * old_celestialBodySettings.cloudTint.Evaluate(k / (float)(cloudTextures.Length * cloudPadding));
+                        colors[index] = cloudColors[j] * cloudSettings.cloudTint.Evaluate(k / (float)(cloudTextures.Length * cloudPadding));
                     }
                 }
                 cloudLayerTexture.SetPixels(colors);
@@ -215,18 +217,17 @@ public class CelestialBodyGenerator : MonoBehaviour {
                 CelestialBodyLayer cloud = Instantiate(planetLayerPrefab, transform).GetComponent<CelestialBodyLayer>();
                 cloud.gameObject.name = "Cloud Layer " + k;
 
-                cloud.Configure(k, cloudLayerTexture, waterMaskTexture, old_celestialBodySettings);
+                cloud.Configure(k, cloudLayerTexture, waterMaskTexture, celestialBodySettings.shapeSettings, celestialBodySettings.colorSettings);
 
-                cloud.radius = old_celestialBodySettings.cloudRadiusStart + old_celestialBodySettings.cloudRadiusChange * k;
+                //TODO fix to be better
+                cloud.radius = cloudSettings.cloudRadiusStart + cloudSettings.cloudRadiusChange * k;
                 cloud.allowRotate = true;
-                cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * old_celestialBodySettings.layers, 0);
-                cloud.scroll = true;
-                cloud.rotateSpeed = 0.002f;
-                cloud.tint = old_celestialBodySettings.cloudTint.Evaluate(k / (cloudTextures.Length * cloudPadding));
+                cloud.transform.localPosition = new Vector3(0, 0.01f * k + 0.01f * celestialBodySettings.colorSettings.layers, 0);
+
+                cloud.tint = cloudSettings.cloudTint.Evaluate(k / (cloudTextures.Length * cloudPadding));
                 cloud.shadowColor = new Color(0.05288889f, 0.04848149f, 0.119f);
-                //cloud.roateSpeedVariance = Random.Range(0.8f, 1.2f);
             }
-        }*/
+        }
     }
 
     public float Evaluate(Vector3 point, NoiseSettings noiseSettings) {

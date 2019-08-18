@@ -15,7 +15,7 @@ MonoBehaviour:
   noiseSettingsFoldout: 0
   textureSize: 128
   noiseSettings:
-    seed: 1234
+    seed: 1253
     dx: 1
     dy: 1
     octaves: 5
@@ -95,11 +95,12 @@ MonoBehaviour:
     layers: 12
     tint: {r: 1, g: 1, b: 1, a: 1}
     shadowStrength: 1
-    cloudRadiusStart: 0.56
-    cloudRadiusChange: 0.001
-    cloudCentroids: 0
-    cloundCount: 0
-    cloudDensity: 0.05
+  cloudSettings:
+    cloudRadiusStart: 0.58
+    cloudRadiusChange: 0.002
+    cloudCentroids: 20
+    cloundCount: 80
+    cloudDensity: 0.15
     cloudTint:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
